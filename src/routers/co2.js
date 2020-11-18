@@ -1,9 +1,8 @@
 const express = require('express');
 const router = new express.Router();
 
-router.get('/test', (req, res) => {
-    res.send('test');
+router.get('/co2', (req, res) => {
+    res.send({value: 1200});
 });
-
 
 module.exports = router;
