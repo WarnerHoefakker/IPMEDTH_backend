@@ -5,6 +5,11 @@ router.get('/test', (req, res) => {
     res.send('test');
 });
 
+app.post('/id', function (req, res) {
+  res.send('joejoe')
+  console.log(res.data)
+});
+
 router.get('/', (req, res) => {
     res.send('home')
 });
