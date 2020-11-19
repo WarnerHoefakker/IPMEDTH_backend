@@ -5,7 +5,7 @@ router.get('/test', (req, res) => {
     res.send('test');
 });
 
-app.post('/id', function (req, res) {
+router.post('/id', function (req, res) {
   res.send('joejoe')
   console.log(res.data)
 });
