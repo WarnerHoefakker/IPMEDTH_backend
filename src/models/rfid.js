@@ -2,7 +2,7 @@ const mongoose = require('../db/mongoose');
 
 const rfidSchema = mongoose.Schema({
     value: {
-        type: Number,
+        type: String,
         required: true
     },
     roomid: {
