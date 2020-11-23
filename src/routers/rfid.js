@@ -8,15 +8,15 @@ router.get('/rfid', (req, res) => {
 });
 
 router.post('/rfid-add', async (req, res) => {
-    // const { value } = req.body.payload;
+    const { value } = req.body;
 
-    // const newValue = new RFID({uid: value,roomid:0});
+    const newValue = new ({value: value,roomid:0});
 
-    // await newValue.save();
+    await newValue.save();
     // const level = await Co2.find({});
-    // console.log(req.body)
-    console.log(req);
-    res.send({value: 894353434});
+
+    console.log(value);
+    res.send({value: 1200});
 });
 
 module.exports = router;
