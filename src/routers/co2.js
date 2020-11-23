@@ -13,7 +13,6 @@ router.post('/co2add', async (req, res) => {
     const newValue = new Co2({value: value,roomid:0});
 
     await newValue.save();
-
     // const level = await Co2.find({});
 
     console.log(value);
