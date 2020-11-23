@@ -15,7 +15,7 @@ router.post('/rfid-add', async (req, res) => {
     // await newValue.save();
     // const level = await Co2.find({});
     // console.log(req.body)
-    console.log(req.body.payload);
+    console.log(req.body);
     res.send({value: 894353434});
 });
 
