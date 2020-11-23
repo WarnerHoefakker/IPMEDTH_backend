@@ -1,7 +1,7 @@
 const mongoose = require('../db/mongoose');
 
 const rfidSchema = mongoose.Schema({
-    value: {
+    uid: {
         type: String,
         required: true
     },
