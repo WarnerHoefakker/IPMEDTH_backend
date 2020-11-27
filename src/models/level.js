@@ -3,7 +3,8 @@ const mongoose = require('../db/mongoose');
 const levelSchema = mongoose.Schema({
     levelName: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     }
 });
 
