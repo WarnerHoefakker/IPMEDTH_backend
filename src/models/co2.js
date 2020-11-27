@@ -5,9 +5,10 @@ const co2Schema = mongoose.Schema({
         type: Number,
         required: true
     },
-    roomid: {
-        type: Number,
-        required: true
+    roomId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Level'
     }
 },{timestamps:true});
 
