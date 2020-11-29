@@ -16,7 +16,6 @@ router.post('/rfidadd', async (req, res) => {
 
     const level = await RFID.find({});
     res.send(level);
-
     console.log(value);
     console.log(req.body.roomid);
 });
@@ -25,9 +24,14 @@ router.get('/rfidall', async (req, res) => {
 
     const level = await RFID.find({});
 
-    if (level.includes(559494754261)){
-      console.log("JAAA");
+    for (i = 0; i < level.length; i++) {
+      if (level[i].value == 559494754261) {
+        RFID.deleteOne({ value: 559494754261 }, function (err) {
+          if (err) return console.log(err);
+        });
+      }
     }
+
 
     res.send(level);
 });
