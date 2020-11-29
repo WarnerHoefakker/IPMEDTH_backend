@@ -22,4 +22,11 @@ router.post('/rfidadd', async (req, res) => {
     res.send({value: 1200});
 });
 
+router.get('/rfidall', async (req, res) => { //TODO: verwijderen
+
+    const level = await RFID.find({});
+
+    res.send(level);
+});
+
 module.exports = router;
