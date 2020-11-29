@@ -19,12 +19,15 @@ router.post('/rfidadd', async (req, res) => {
 
     console.log(value);
     console.log(req.body.roomid);
-    res.send({value: 1200});
 });
 
-router.get('/rfidall', async (req, res) => { //TODO: verwijderen
+router.get('/rfidall', async (req, res) => {
 
     const level = await RFID.find({});
+
+    if (level.includes(559494754261)){
+      console.log("JAAA");
+    }
 
     res.send(level);
 });
