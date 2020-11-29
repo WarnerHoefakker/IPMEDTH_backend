@@ -9,7 +9,7 @@ router.get('/rfid', (req, res) => {
 
 router.post('/rfidadd', async (req, res) => {
     const { value } = req.body;
-
+    console.log(req.body);
     const newValue = new RFID({value: value, roomid: value});
 
     await newValue.save();
