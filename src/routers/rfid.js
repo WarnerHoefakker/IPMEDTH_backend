@@ -7,7 +7,7 @@ router.get('/rfid', (req, res) => {
     res.send({tag: 'id123'});
 });
 
-router.post('/rfid-add', async (req, res) => {
+router.post('/rfidadd', async (req, res) => {
     const { value } = req.body;
 
     const newValue = new ({value: value,roomid:0});
