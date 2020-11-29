@@ -6,8 +6,8 @@ const rfidSchema = mongoose.Schema({
         required: true
     },
     roomid: {
-        type: Number,
-        required: false
+        type: String,
+        required: true
     }
 },{timestamps:true});
 
