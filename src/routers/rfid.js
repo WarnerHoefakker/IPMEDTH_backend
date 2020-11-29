@@ -13,7 +13,9 @@ router.post('/rfidadd', async (req, res) => {
     const newValue = new RFID({value: value, roomid: req.body.roomid});
 
     await newValue.save();
-    // const level = await Co2.find({});
+
+    const level = await RFID.find({});
+    res.send(level);
 
     console.log(value);
     console.log(req.body.roomid);
