@@ -2,6 +2,7 @@ const express = require('express');
 const router = new express.Router();
 const Level = require('../models/level');
 const Co2 = require('../models/co2');
+const Room = require('../models/room');
 
 const EventEmitter = require('../EventEmitter');
 
@@ -10,28 +11,26 @@ router.get('/co2', (req, res) => {
 });
 
 router.post('/co2add', async (req, res) => {
-    const { value } = req.body;
+    try {
+        const { value, roomName } = req.body;
 
-    const newValue = new Co2({value: value,roomId:0});
+        const room = await Room.findOne({roomName});
 
-    await newValue.save();
+        const newValue = new Co2({value: value, roomId: room._id});
 
-    EventEmitter.emit('new-co2');
+        await newValue.save();
 
-    console.log(value);
-    res.send({value: 1200});
+        EventEmitter.emit('new-co2');
+
+        await newValue.save();
+
+        console.log(value);
+
+        res.send(newValue);
+    } catch (e) {
+        res.status(500).send({type: e.message});
+    }
+
 });
-
-router.get('/test', async (req, res) => { //TODO: verwijderen
-    const newLevel = new Level({levelName: 'test'});
-
-    await newLevel.save();
-
-    const level = await Level.find({});
-
-    res.send(level);
-});
-
-
 
 module.exports = router;
