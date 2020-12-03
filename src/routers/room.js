@@ -49,26 +49,39 @@ router.get('/rooms/:roomId', async (req, res) => {
 });
 
 router.get('/rooms/:roomId/currentstatus', serverSentEvents, async (req, res) => {
-    async function getCo2AndOccupation() {
-        let response = {};
+    async function getCo2AndOccupation({roomId}) {
+        console.log(roomId);
+        try {
+            if (roomId === req.params.roomId) { // alleen als het roomid dat vanuit het event wordt meegegeven hetzelfde is als het roomid waar naar wordt geluisteerd wordt de nieuwe waarde gestuurd
 
-        const room = await Room.findOne({roomId: req.params.roomId});
+                let response = {};
 
-        const co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
+                const room = await Room.findOne({roomId: req.params.roomId});
 
-        response.co2 = {level: co2.value};
+                const co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
 
-        // TODO: bezetting toevoegen
-        response.people = {amount: 0, max: 0};
+                response.co2 = {level: co2.value};
 
-        res.sendEventStreamData(response);
+                // TODO: bezetting toevoegen
+                response.people = {amount: 0, max: 0};
+
+                res.sendEventStreamData(response);
+            }
+        } catch (e) {
+            res.status(500).send({type: e.message}); // TODO: als er iets fout gaat wordt de hele verbinding verbroken > in front end zorgen voor nieuwe verbinding? Of vanuit backend?
+        }
     }
 
-    try {
-        EventEmitter.on('new-co2', getCo2AndOccupation)
-    } catch (e) {
-        res.status(500).send({type: e.message});
-    }
+    EventEmitter.on('new-co2', getCo2AndOccupation);
+
+    // close
+    res.on('close', () => {
+        // clearInterval(interval);
+        console.log('end connection');
+        EventEmitter.removeListener('new-co2', getCo2AndOccupation);
+        res.end();
+        console.log(res.finished)
+    });
 });
 
 router.get('/rooms/:roomId/today', async (req, res) => {

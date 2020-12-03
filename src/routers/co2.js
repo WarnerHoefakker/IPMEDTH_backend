@@ -12,15 +12,15 @@ router.get('/co2', (req, res) => {
 
 router.post('/co2add', async (req, res) => {
     try {
-        const { value, roomName } = req.body;
+        const { value, roomId } = req.body;
 
-        const room = await Room.findOne({roomName});
+        const room = await Room.findOne({roomId});
 
         const newValue = new Co2({value: value, roomId: room._id});
 
         await newValue.save();
 
-        EventEmitter.emit('new-co2');
+        EventEmitter.emit('new-co2', {roomId});
 
         await newValue.save();
 
