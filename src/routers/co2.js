@@ -20,7 +20,7 @@ router.post('/co2add', async (req, res) => {
 
         await newValue.save();
 
-        EventEmitter.emit('new-co2', {roomId});
+        EventEmitter.emit('update-status', {roomId});
 
         await newValue.save();
 
