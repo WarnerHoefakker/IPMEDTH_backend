@@ -14,7 +14,6 @@ router.get('/rooms', async (req, res) => {
     *
     * */
 
-    // TODO: niet alles dat word opgehaald teruggeven: alleen roomId, roomName, peopleAmount
     try {
         let filter = {};
 
