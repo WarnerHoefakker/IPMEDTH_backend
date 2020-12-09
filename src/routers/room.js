@@ -17,9 +17,9 @@ router.get('/rooms', async (req, res) => {
     try {
         let filter = {};
 
-        const { levelName } = req.body;
+        const {levelName} = req.body;
 
-        if(levelName !== undefined){
+        if (levelName !== undefined) {
             const level = await Level.findOne({levelName});
 
             filter.levelId = level._id;
@@ -64,10 +64,10 @@ router.get('/rooms/:roomId/currentstatus', serverSentEvents, async (req, res) =>
                 // TODO: bezetting toevoegen
                 response.people = {amount: 0, max: 0};
 
-                res.sendEventStreamData(response);
+                res.send(response);
             }
         } catch (e) {
-            res.status(500).send({type: e.message}); // TODO: als er iets fout gaat wordt de hele verbinding verbroken > in front end zorgen voor nieuwe verbinding? Of vanuit backend?
+            res.status(500).send({type: e.message});
         }
     }
 
@@ -91,7 +91,7 @@ router.get('/rooms/:roomId/lastweek', async (req, res) => {
 
 router.post('/rooms/add', async (req, res) => {
     try {
-        const { levelName, roomId, roomName, peopleAmount } = req.body;
+        const {levelName, roomId, roomName, peopleAmount} = req.body;
 
         const level = await Level.findOne({levelName});
 

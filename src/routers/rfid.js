@@ -1,7 +1,9 @@
 const express = require('express');
 const router = new express.Router();
 const Level = require('../models/level');
+const Room = require('../models/room');
 const RFID = require('../models/rfid');
+const People = require('../models/people');
 
 router.get('/rfid', (req, res) => {
     res.send({tag: 'id123'});
@@ -11,6 +13,9 @@ router.post('/rfidadd', async (req, res) => {
     const { value } = req.body;
 
     const newValue = new RFID({value: value, roomid: req.body.roomid});
+
+    const room = await Room.findOne({roomid: req.body.roomid});
+    const addPerson = new People({rfidTag: req.body.value, roomid: req.body.roomid, roomName: req.body.roomid});
 
     await newValue.save();
 
