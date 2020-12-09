@@ -2,14 +2,13 @@ const mongoose = require('../db/mongoose');
 
 const roomSchema = mongoose.Schema({
     roomId: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
-        unique: true
+        ref: 'Room'
     },
     roomName: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     levelId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -17,8 +16,9 @@ const roomSchema = mongoose.Schema({
         ref: 'Level'
     },
     rfidTag: {
-        type: Number,
-        required: true
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Tag'
     }
 },{timestamps:true});
 

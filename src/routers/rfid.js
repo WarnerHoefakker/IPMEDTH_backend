@@ -1,37 +1,61 @@
 const express = require('express');
 const router = new express.Router();
-const Level = require('../models/level');
 const Room = require('../models/room');
-const RFID = require('../models/rfid');
+const Tag = require('../models/rfid');
 const People = require('../models/people');
+const LoggedInTagsLog = require('../models/logged_in_tags_log');
+
+const EventEmitter = require('../EventEmitter');
 
 router.get('/rfid', (req, res) => {
     res.send({tag: 'id123'});
 });
 
-router.post('/rfidadd', async (req, res) => {
-    const { value } = req.body;
+router.post('/rfid/add', async(req, res) => {
+    try {
+        const { value, appId } = req.body;
 
-    const newValue = new RFID({value: value, roomid: req.body.roomid});
+        const newTag = new Tag({tagId: value, appId});
 
-    const room = await Room.findOne({roomid: req.body.roomid});
-    const addPerson = new People({rfidTag: req.body.value, roomid: req.body.roomid, roomName: req.body.roomid});
+        await newTag.save();
 
-    await newValue.save();
+        res.send(newTag);
+    } catch (e) {
+        res.status(500).send({type: e.message});
+    }
+});
 
-    const level = await RFID.find({});
-    res.send(level);
-    console.log(value);
-    console.log(req.body.roomid);
+router.post('/rfid/login', async (req, res) => { // TODO: 1 tag kan tegelijk in dezelfde of andere ruimtes inloggen
+    try {
+        const { value, roomid } = req.body;
+
+        const room = await Room.findOne({roomId: roomid});
+        const tag = await Tag.findOne({tagId: value});
+
+        const addPerson = new People({rfidTag: tag._id, roomId: room._id, roomName: req.body.roomid, levelId: room.levelId});
+
+        await addPerson.save();
+
+        People.countDocuments({ roomId: room._id }, async (err, count) => {
+            const newTagLog = new LoggedInTagsLog({peopleAmount: count, roomId: room._id, levelId: room.levelId});
+            await newTagLog.save();
+        });
+
+        EventEmitter.emit('update-status', {roomId: room.roomId});
+
+        res.send(addPerson);
+    } catch (e) {
+        res.status(500).send({type: e.message});
+    }
 });
 
 router.get('/rfidall', async (req, res) => {
 
-    const level = await RFID.find({});
+    const level = await Tag.find({});
 
     for (i = 0; i < level.length; i++) {
       if (level[i].value == 559494754261) {
-        RFID.deleteOne({ value: 559494754261 }, function (err) {
+        Tag.deleteOne({ tagId: 559494754261 }, function (err) {
           if (err) return console.log(err);
         });
       }

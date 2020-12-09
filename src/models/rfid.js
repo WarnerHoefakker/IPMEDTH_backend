@@ -1,16 +1,27 @@
 const mongoose = require('../db/mongoose');
 
 const rfidSchema = mongoose.Schema({
-    value: {
+    tagId: {
         type: Number,
-        required: true
+        required: true,
+        unique: true
     },
-    roomid: {
+    appId: {
         type: String,
         required: true
+    },
+    levelId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: false,
+        ref: 'Level'
+    },
+    roomId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: false,
+        ref: 'Room'
     }
 },{timestamps:true});
 
-const RFID = mongoose.model('RFID', rfidSchema);
+const Tag = mongoose.model('Tag', rfidSchema);
 
-module.exports = RFID;
+module.exports = Tag;
