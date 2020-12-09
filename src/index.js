@@ -3,6 +3,7 @@ require('dotenv').config();
 const co2Router = require('./routers/co2');
 const rfidRouter = require('./routers/rfid');
 const roomRouter = require('./routers/room');
+const peopleRouter = require('./routers/people');
 
 require('./db/mongoose.js');
 
@@ -11,6 +12,7 @@ app.use(express.json());
 app.use(co2Router);
 app.use(rfidRouter);
 app.use(roomRouter);
+app.use(peopleRouter);
 
 app.listen(process.env.PORT || 3001, () => {
     console.log('server is up on port ', process.env.PORT || 3001)
