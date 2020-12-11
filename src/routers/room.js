@@ -34,6 +34,32 @@ router.get('/rooms', async (req, res) => {
     }
 });
 
+router.get('/:roomId/currentstatus', async(req, res) => {
+    try{
+        const room = await Room.findOne({roomId: req.params.roomId});
+        const co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
+        if(co2 == null){
+            co2 = 0;
+        }
+        const peopleAmount = await People.countDocuments({roomId: room._id}).exec();
+
+        const response = {
+            co2: {
+                level: co2.value
+            },
+            people: {
+                people: peopleAmount,
+                max: room.peopleAmount
+            }
+        }
+
+        res.send(response);
+
+    } catch(e){
+        res.status(500).send({type: e.message});
+    }
+});
+
 router.get('/rooms/currentstatus', async (req, res) => {
     // route voor huidige status van alle lokalen
     // hierbij ook filter toevoegen (dashboard filter)
