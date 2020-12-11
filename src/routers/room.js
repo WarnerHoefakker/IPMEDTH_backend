@@ -112,11 +112,17 @@ router.get('/rooms/:roomId/currentstatus', serverSentEvents, async (req, res) =>
     });
 });
 
-router.get('/rooms/:roomId/today', async (req, res) => {
+router.get('/rooms/:roomId/history', async (req, res) => {
+    // const room = await Room.findOne({roomId: 'LC4044'});
+    //
+    // var cutoff = new Date();
+    // cutoff.setDate(cutoff.getDate()-7);
+    //
+    // const co2 = await CO2.find({roomId: room._id, modificationDate: {$lt: cutoff}});
+    //
+    // console.log(co2);
 
-});
-
-router.get('/rooms/:roomId/lastweek', async (req, res) => {
+    res.send('ok');
 
 });
 
