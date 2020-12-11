@@ -122,7 +122,17 @@ router.get('/rooms/:roomId/history', async (req, res) => {
     //
     // console.log(co2);
 
-    res.send('ok');
+
+    res.send({
+            today: {
+                co2: [],
+                people: []
+            },
+            lastweek: {
+                co2: [],
+                people: []
+            }
+        });
 
 });
 
