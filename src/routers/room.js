@@ -7,6 +7,7 @@ const CO2 = require('../models/co2');
 const People = require('../models/people');
 
 const EventEmitter = require('../EventEmitter');
+const determineSafetyLevel = require('../determineSafetyLevel');
 
 router.get('/rooms', async (req, res) => {
     /*
@@ -43,6 +44,8 @@ router.get('/:roomId/currentstatus', async(req, res) => {
         }
         const peopleAmount = await People.countDocuments({roomId: room._id}).exec();
 
+        const safetyLevel = determineSafetyLevel(co2.value, peopleAmount);
+
         const response = {
             co2: {
                 level: co2.value
@@ -50,7 +53,8 @@ router.get('/:roomId/currentstatus', async(req, res) => {
             people: {
                 people: peopleAmount,
                 max: room.peopleAmount
-            }
+            },
+            safetyLevel
         }
 
         res.send(response);
