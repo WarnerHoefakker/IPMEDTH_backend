@@ -25,7 +25,7 @@ router.get('/levels/:levelName/status', async (req, res) => {
 
             let peopleAmount = await People.countDocuments({roomId: rooms[i]._id}).exec();
 
-            response[rooms[i].roomId] = determineSafetyLevel(co2.value, peopleAmount);
+            response[rooms[i].roomId] = determineSafetyLevel(co2.value, peopleAmount, rooms[i].peopleAmount);
         }
 
         res.send(response)

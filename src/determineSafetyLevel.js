@@ -1,21 +1,17 @@
-const determineSafetyLevel = (co2Value, peopleAmount) => {
-    let points = 0;
+// co2:     good: 400 - 800,    medium: 800 - 1000,     bad: > 1000
+// people:  good: 0%-60%,       medium: 60%-80%,        bad: > 80%
 
-    points += co2Value;
+const determineSafetyLevel = (co2Value, peopleAmount, maxPeople) => {
+    const peoplePercentage = peopleAmount / maxPeople * 100;
 
-    if(co2Value > 700){
-        points += peopleAmount
-    }
-
-    if(points >= 0 && points <= 700){
-        return 'good'
-    } else if (points > 700 && points <= 1000){
-        return 'medium'
-    } else if (points > 1000){
-        return 'bad'
-    } else {
-        return 'null'
-    }
+    if (peoplePercentage >= 80 || co2Value >= 1000)
+        return 'bad';
+    else if ((peoplePercentage >= 60 && peoplePercentage < 80) || (co2Value >= 800 && co2Value < 1000))
+        return 'medium';
+    else if ((peoplePercentage >= 0 && peoplePercentage < 60) || (co2Value >= 0 && co2Value < 800))
+        return 'good';
+    else
+        return 'null';
 };
 
 module.exports = determineSafetyLevel;
