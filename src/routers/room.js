@@ -130,7 +130,7 @@ router.get('/rooms/:roomId/history', async (req, res) => {
                 people: []
             },
             lastweek: {
-                co2: [co2],
+                co2: [],
                 people: []
             }
         });
