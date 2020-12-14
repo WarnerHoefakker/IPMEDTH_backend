@@ -42,7 +42,7 @@ router.get('/:roomId/currentstatus', async(req, res) => {
         if(co2 == null){
             co2 = {value: 0}
         }
-        
+
         const peopleAmount = await People.countDocuments({roomId: room._id}).exec();
 
         const safetyLevel = determineSafetyLevel(co2.value, peopleAmount, room.peopleAmount);
@@ -176,19 +176,15 @@ router.get('/rooms/:roomId/history', async (req, res) => {
       }
       else if (tijd.substring(0, 10) == "Tue Dec 08") {
         tuesday++
-        // console.log(tuesday);
       }
       else if (tijd.substring(0, 10) == "Wed Dec 09") {
         wednesday++
-        // console.log(wednesday);
       }
       else if (tijd.substring(0, 10) == "Thu Dec 10") {
         thursday++
-        // console.log(thursday);
       }
       else if (tijd.substring(0, 10) == "Fri Dec 11") {
         friday++
-        // console.log(friday);
       }
     }
 
