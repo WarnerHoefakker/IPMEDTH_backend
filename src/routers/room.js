@@ -142,34 +142,62 @@ router.get('/rooms/:roomId/history', async (req, res) => {
     var lastWeek = new Date();
     lastWeek.setDate(lastWeek.getDate() -7);
 
-    const co2 = await CO2.find({roomId: room._id, createdAt: {$gt: lastWeek}});
+    // const co2 = await CO2.find({roomId: room._id, createdAt: {$gt: lastWeek}});
 
-    console.log(co2);
-    // console.log(room);
-    const kooldioxide = await CO2.aggregate([
-        { $match: { createdAt: {$gt: lastWeek} } },
-        { $group: { _id: 'test', average: { $avg: '$value' } } },
-    ])
+    // console.log(co2);
+    // // console.log(room);
+    // const kooldioxide = await CO2.aggregate([
+    //     { $match: { createdAt: {$gt: lastWeek} } },
+    //     { $group: { _id: 'test', average: { $avg: '$value' } } },
+    // ])
 
-    for (let i = 0; i < 7; i++) {
-        var dag1 = new Date();
-        var dag2 = new Date();
-        dag1.setDate(dag1.getDate() - i);
-        dag2.setDate(dag2.getDate() - 1 - i);
-        const kooldioxide = await CO2.aggregate([
-            { $match: { createdAt: {$gt: dag2, $lt: dag1}} },
-            { $group: { _id: i, average: { $avg: '$value' } } },
-        ]);
-        console.log(kooldioxide)
-    }
+    // for (let i = 0; i < 7; i++) {
+    //     var dag1 = new Date();
+    //     var dag2 = new Date();
+    //     dag1.setDate(dag1.getDate() - i);
+    //     dag2.setDate(dag2.getDate() - 1 - i);
+    //     const kooldioxide = await CO2.aggregate([
+    //         { $match: { createdAt: {$gt: dag2, $lt: dag1}} },
+    //         { $group: { _id: i, average: { $avg: '$value' } } },
+    //     ]);
+    //     console.log(kooldioxide)
+    // }
 
+    const co2Week = await CO2.aggregate([
+        {
+            $match: {
+                roomId: room._id,
+                createdAt: {$gt: lastWeek}
+            }
+        },
+        {
+            $group: {
+                _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"},},
+                average: {$avg: '$value'}
+            }
+        }
+    ]);
+
+    const co2day = await CO2.aggregate([
+        {
+            $match: {
+                createdAt: {$gt: lastWeek}
+            }
+        },
+        {
+            $group: {
+                _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"}, hour: {"$hour": "$createdAt"}},
+                average: {$avg: '$co2day'}
+            }
+        }
+    ]);
     res.send({
             today: {
-                co2: [],
+                co2: co2day,
                 people: []
             },
             lastweek: {
-                co2: [kooldioxide],
+                co2: co2Week,
                 people: []
             }
     });
