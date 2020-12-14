@@ -5,13 +5,13 @@ const determineSafetyLevel = (co2Value, peopleAmount, maxPeople) => {
     const peoplePercentage = peopleAmount / maxPeople * 100;
 
     if (peoplePercentage >= 80 || co2Value >= 1000)
-        return 'bad';
+        return 'red';
     else if ((peoplePercentage >= 60 && peoplePercentage < 80) || (co2Value >= 800 && co2Value < 1000))
-        return 'medium';
+        return 'orange';
     else if ((peoplePercentage >= 0 && peoplePercentage < 60) || (co2Value >= 0 && co2Value < 800))
-        return 'good';
+        return 'green';
     else
-        return 'null';
+        return 'grey';
 };
 
 module.exports = determineSafetyLevel;

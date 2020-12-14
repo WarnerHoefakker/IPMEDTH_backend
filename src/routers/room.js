@@ -27,8 +27,25 @@ router.get('/rooms', async (req, res) => {
         }
 
         const rooms = await Room.find(filter);
+        const adjustedRooms = JSON.parse(JSON.stringify(rooms))
 
-        res.send(rooms);
+        for(const room of adjustedRooms){
+            let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
+            let people = await People.countDocuments({roomId: room._id}).exec();
+
+            if(co2 == null){
+                co2 = {value: 0}
+            }
+
+            let safetyLevel = determineSafetyLevel(co2.value, people, room.peopleAmount);
+
+            room.co2 = co2.value;
+            room.people = people;
+            room.safetyLevel = safetyLevel;
+        }
+    
+        adjustedRooms.sort((a, b) => (a.safetyLevel > b.safetyLevel) ? 1 : ((b.safetyLevel > a.safetyLevel) ? -1 : 0));
+        res.send(adjustedRooms);
     } catch (e) {
         res.status(500).send({type: e.message});
     }
