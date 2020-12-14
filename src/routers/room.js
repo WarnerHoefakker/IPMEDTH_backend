@@ -129,7 +129,22 @@ router.get('/rooms/:roomId/history', async (req, res) => {
 
     console.log(co2);
     // console.log(room);
+    const kooldioxide = await CO2.aggregate([
+        { $match: { createdAt: {$gt: lastWeek} } },
+        { $group: { _id: 'test', average: { $avg: '$value' } } },
+    ])
 
+    for (let i = 0; i < 7; i++) {
+        var dag1 = new Date();
+        var dag2 = new Date();
+        dag1.setDate(dag1.getDate() - i);
+        dag2.setDate(dag2.getDate() - 1 - i);
+        const kooldioxide = await CO2.aggregate([
+            { $match: { createdAt: {$gt: dag2, $lt: dag1}} },
+            { $group: { _id: i, average: { $avg: '$value' } } },
+        ]);
+        console.log(kooldioxide)
+    }
 
     res.send({
             today: {
@@ -137,7 +152,7 @@ router.get('/rooms/:roomId/history', async (req, res) => {
                 people: []
             },
             lastweek: {
-                co2: [],
+                co2: [kooldioxide],
                 people: []
             }
     });
