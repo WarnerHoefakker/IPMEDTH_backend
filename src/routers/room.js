@@ -44,7 +44,7 @@ router.get('/rooms', async (req, res) => {
             room.people = people;
             room.safetyLevel = safetyLevel;
         }
-
+    
         adjustedRooms.sort((a, b) => (a.safetyLevel > b.safetyLevel) ? 1 : ((b.safetyLevel > a.safetyLevel) ? -1 : 0));
         res.send(adjustedRooms);
     } catch (e) {
@@ -136,11 +136,33 @@ router.get('/rooms/:roomId/currentstatus', serverSentEvents, async (req, res) =>
 });
 
 router.get('/rooms/:roomId/history', async (req, res) => {
-
+    // const room = await People.findOne({roomId: 'LC4044'});
+    // let start = new Date(now.getFullYear(),now.getMonth(),now.getDate(),1,0,0);
     const room = await Room.findOne({roomId: 'LC4044'});
-
+    
     var lastWeek = new Date();
     lastWeek.setDate(lastWeek.getDate() -7);
+
+    // const co2 = await CO2.find({roomId: room._id, createdAt: {$gt: lastWeek}});
+
+    // console.log(co2);
+    // // console.log(room);
+    // const kooldioxide = await CO2.aggregate([
+    //     { $match: { createdAt: {$gt: lastWeek} } },
+    //     { $group: { _id: 'test', average: { $avg: '$value' } } },
+    // ])
+
+    // for (let i = 0; i < 7; i++) {
+    //     var dag1 = new Date();
+    //     var dag2 = new Date();
+    //     dag1.setDate(dag1.getDate() - i);
+    //     dag2.setDate(dag2.getDate() - 1 - i);
+    //     const kooldioxide = await CO2.aggregate([
+    //         { $match: { createdAt: {$gt: dag2, $lt: dag1}} },
+    //         { $group: { _id: i, average: { $avg: '$value' } } },
+    //     ]);
+    //     console.log(kooldioxide)
+    // }
 
     const co2Week = await CO2.aggregate([
         {
@@ -157,20 +179,6 @@ router.get('/rooms/:roomId/history', async (req, res) => {
         }
     ]);
 
-    const peopleWeek = await LoggedInTagsLog.aggregate([
-    {
-        $match: {
-            createdAt: {$gt: lastWeek}, roomId: room._id
-        }
-    },
-    {
-        $group: {
-            _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"}},
-            average: {$avg: '$peopleAmount'}
-        }
-    }
-    ]);
-
     const co2day = await CO2.aggregate([
         {
             $match: {
@@ -180,32 +188,56 @@ router.get('/rooms/:roomId/history', async (req, res) => {
         {
             $group: {
                 _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"}, hour: {"$hour": "$createdAt"}},
-                average: {$avg: '$co2day'}
+                average: {$avg: '$value'}
             }
         }
     ]);
 
-    const peopleDay = await LoggedInTagsLog.aggregate([
+    let co2WeekValues = {};
+    for(let i = 0; i < co2Week.length; i ++){
+        let date = co2Week[i]._id.day.toString()+ '-' + co2Week[i]._id.month.toString() + '-' + co2Week[i]._id.year.toString();
+        co2WeekValues[date] = co2Week[i].average;
+    }
+    let co2DayValues = {};
+    for(let i = 0; i < co2day.length; i ++){
+        let date = co2day[i]._id.hour.toString()+ ':00';
+        co2DayValues[date] = co2day[i].average;
+    }
+    const peopleWeek = await LoggedInTagsLog.aggregate([
         {
             $match: {
-              createdAt: {$gt: lastWeek}, roomId: room._id
+                createdAt: {$gt: lastWeek}, roomId: room._id
             }
-          },
-          {
+        },
+        {
             $group: {
-                _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"}, hour: {"$hour": "$createdAt"}},
+                _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"}},
                 average: {$avg: '$peopleAmount'}
             }
         }
-      ]);
-
+        ]);
+    
+        const peopleDay = await LoggedInTagsLog.aggregate([
+            {
+                $match: {
+                  createdAt: {$gt: lastWeek}, roomId: room._id
+                }
+              },
+              {
+                $group: {
+                    _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"}, hour: {"$hour": "$createdAt"}},
+                    average: {$avg: '$peopleAmount'}
+                }
+            }
+          ]);
+    
     res.send({
             today: {
-                co2: co2day,
+                co2: co2DayValues,
                 people: peopleDay
             },
             lastweek: {
-                co2: co2Week,
+                co2: co2WeekValues,
                 people: peopleWeek
             }
     });
