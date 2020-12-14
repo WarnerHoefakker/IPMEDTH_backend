@@ -5,7 +5,6 @@ const Room = require('../models/room');
 const Level = require('../models/level');
 const CO2 = require('../models/co2');
 const People = require('../models/people');
-
 const EventEmitter = require('../EventEmitter');
 
 router.get('/rooms', async (req, res) => {
@@ -113,27 +112,100 @@ router.get('/rooms/:roomId/currentstatus', serverSentEvents, async (req, res) =>
 });
 
 router.get('/rooms/:roomId/history', async (req, res) => {
-    const room = await Room.findOne({roomId: 'LC4044'});
-    
+    // const room = await People.findOne({roomId: 'LC4044'});
+    // let start = new Date(now.getFullYear(),now.getMonth(),now.getDate(),1,0,0);
+    const room = await People.find({roomName: 'LC4044'});
+    var i;
+    var monday = 0;
+    var tuesday = 0;
+    var wednesday = 0;
+    var thursday = 0;
+    var friday = 0;
+    var nine = 0;
+    var ten = 0;
+    var eleven = 0;
+    var twelve = 0;
+    var thirteen = 0;
+    var fourteen = 0;
+    var fifteen = 0;
+    var sixteen = 0;
+    var seventeen = 0;
+    var eighteen = 0;
+
+    for (i = 0; i < room.length; i++){
+      var tijd = String(room[i].createdAt);
+      if (tijd.substring(0, 10) == "Mon Dec 07") {
+        monday++
+        console.log(monday);
+        if (tijd.substring(16, 18) == "9") {
+          nine++
+        }
+        if (tijd.substring(16, 18) == "10") {
+          ten++
+        }
+        if (tijd.substring(16, 18) == "11") {
+          eleven++
+        }
+        if (tijd.substring(16, 18) == "12") {
+          twelve++
+        }
+        if (tijd.substring(16, 18) == "13") {
+          thirteen++
+        }
+        if (tijd.substring(16, 18) == "14") {
+          fourteen++
+        }
+        if (tijd.substring(16, 18) == "15") {
+          fifteen++
+        }
+        if (tijd.substring(16, 18) == "16") {
+          sixteen++
+        }
+        if (tijd.substring(16, 18) == "17") {
+          seventeen++
+        }
+        if (tijd.substring(16, 18) == "18") {
+          eighteen++
+        }
+      }
+      else if (tijd.substring(0, 10) == "Tue Dec 08") {
+        tuesday++
+        // console.log(tuesday);
+      }
+      else if (tijd.substring(0, 10) == "Wed Dec 09") {
+        wednesday++
+        // console.log(wednesday);
+      }
+      else if (tijd.substring(0, 10) == "Thu Dec 10") {
+        thursday++
+        // console.log(thursday);
+      }
+      else if (tijd.substring(0, 10) == "Fri Dec 11") {
+        friday++
+        // console.log(friday);
+      }
+    }
+
     var lastWeek = new Date();
     lastWeek.setDate(lastWeek.getDate() -7);
-    
+
     const co2 = await CO2.find({roomId: room._id, createdAt: {$gt: lastWeek}});
-   
-    
-    console.log(co2);
 
 
-    res.send({
-            today: {
-                co2: [],
-                people: []
-            },
-            lastweek: {
-                co2: [],
-                people: []
-            }
-        });
+    // console.log(co2);
+    // console.log(room);
+
+
+    // res.send({
+    //         today: {
+    //             co2: [],
+    //             people: []
+    //         },
+    //         lastweek: {
+    //             co2: [],
+    //             people: []
+    //         }
+    // });
 
 });
 
