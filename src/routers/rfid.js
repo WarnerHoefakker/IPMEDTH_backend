@@ -59,29 +59,63 @@ router.post('/rfid/add', async(req, res) => {
     }
 });
 
-router.post('/rfid/login', async (req, res) => { // TODO: 1 tag kan tegelijk in dezelfde of andere ruimtes inloggen
+router.post('/rfid/login', async (req, res) => {
     try {
-        const { value, roomid } = req.body;
+        let { value, roomid } = req.body; // value = tagId
+
+        if(typeof value === "number") {
+            value = value.toString();
+        }
 
         const room = await Room.findOne({roomId: roomid});
         const tag = await Tag.findOne({tagId: value});
 
-        const addPerson = new People({rfidTag: tag._id, roomId: room._id, roomName: req.body.roomid, levelId: room.levelId});
+        if(!tag) {
+            res.status(400).send({message: 'Tag niet gekoppeld'});
+            return false
+        }
 
-        await addPerson.save();
+        if(!room) {
+            res.status(400).send({message: 'Ruimte bestaat niet'});
+            return false
+        }
 
-        People.countDocuments({ roomId: room._id }, async (err, count) => {
-            const newTagLog = new LoggedInTagsLog({peopleAmount: count, roomId: room._id, levelId: room.levelId});
-            await newTagLog.save();
-        });
+        const existingLogin = People.findOne({tagId: tag._id});
+        if(existingLogin) {
+            await People.deleteOne({tagId: tag._id});
+        }
 
-        EventEmitter.emit('update-status', {roomId: room.roomId});
+        const newLogin = new People({tagId: tag._id, roomId: room._id, roomName: room.roomName, levelId: room.levelId});
 
-        res.send(addPerson);
+        await newLogin.save();
+
+        res.send({newLogin});
     } catch (e) {
         res.status(500).send({type: e.message});
     }
 });
+
+router.post('/rfid/logout', async (req, res) => {
+    try {
+        const { value } = req.body; // value = tagId
+
+        const tag = await Tag.findOne({tagId: value});
+
+        if(!tag) {
+            res.status(400).send({message: 'Tag niet gekoppeld'});
+            return false
+        }
+
+        const existingLogin = People.findOne({tagId: tag._id});
+        if(existingLogin) {
+            await People.deleteOne({tagId: tag._id});
+        }
+
+        res.send({message: "Success"});
+    } catch (e) {
+        res.status(500).send({type: e.message});
+    }
+})
 
 router.get('/rfidall', async (req, res) => {
 
