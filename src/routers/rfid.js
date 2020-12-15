@@ -7,16 +7,50 @@ const LoggedInTagsLog = require('../models/logged_in_tags_log');
 
 const EventEmitter = require('../EventEmitter');
 
-router.get('/rfid', (req, res) => {
-    res.send({tag: 'id123'});
+router.get('/rfid', async (req, res) => {
+    try {
+        const {appId} = req.body;
+
+        const tag = await Tag.findOne({appId});
+
+        if(tag) {
+            res.send({tagId: tag.tagId});
+        }
+        else {
+            res.status(404).send({message: 'Geen tag gekoppeld'})
+        }
+    } catch (e) {
+        res.status(500).send({type: e.message});
+    }
+
 });
 
 router.post('/rfid/add', async(req, res) => {
     try {
-        const { value, appId } = req.body;
+        let { tagId, appId } = req.body;
 
-        const newTag = new Tag({tagId: value, appId});
+        if(typeof tagId === "number") {
+            tagId = tagId.toString();
+        }
 
+        if(typeof appId === "number") {
+            appId = appId.toString();
+        }
+
+        // Als de tag al gebruikt wordt door een andere app, kan deze niet gekoppeld worden
+        const existingTag = await Tag.findOne({tagId});
+        if(existingTag && existingTag.appId !== appId) {
+            res.status(400).send({message: 'Tag is al in gebruik'});
+            return false
+        }
+
+        // Als de app al gekoppeld is aan een tag wordt deze koppeling verwijderd
+        const existingApp = await Tag.findOne({appId});
+        if(existingApp) {
+            await Tag.deleteOne({appId});
+        }
+
+        const newTag = new Tag({tagId, appId});
         await newTag.save();
 
         res.send(newTag);
@@ -25,25 +59,59 @@ router.post('/rfid/add', async(req, res) => {
     }
 });
 
-router.post('/rfid/login', async (req, res) => { // TODO: 1 tag kan tegelijk in dezelfde of andere ruimtes inloggen
+router.post('/rfid/login', async (req, res) => {
     try {
-        const { value, roomid } = req.body;
+        let { value, roomid } = req.body; // value = tagId
+
+        if(typeof value === "number") {
+            value = value.toString();
+        }
 
         const room = await Room.findOne({roomId: roomid});
         const tag = await Tag.findOne({tagId: value});
 
-        const addPerson = new People({rfidTag: tag._id, roomId: room._id, roomName: req.body.roomid, levelId: room.levelId});
+        if(!tag) {
+            res.status(400).send({message: 'Tag niet gekoppeld'});
+            return false
+        }
 
-        await addPerson.save();
+        if(!room) {
+            res.status(400).send({message: 'Ruimte bestaat niet'});
+            return false
+        }
 
-        People.countDocuments({ roomId: room._id }, async (err, count) => {
-            const newTagLog = new LoggedInTagsLog({peopleAmount: count, roomId: room._id, levelId: room.levelId});
-            await newTagLog.save();
-        });
+        const existingLogin = People.findOne({tagId: tag._id});
+        if(existingLogin) {
+            await People.deleteOne({tagId: tag._id});
+        }
 
-        EventEmitter.emit('update-status', {roomId: room.roomId});
+        const newLogin = new People({tagId: tag._id, roomId: room._id, roomName: room.roomName, levelId: room.levelId});
 
-        res.send(addPerson);
+        await newLogin.save();
+
+        res.send({newLogin});
+    } catch (e) {
+        res.status(500).send({type: e.message});
+    }
+});
+
+router.post('/rfid/logout', async (req, res) => {
+    try {
+        const { value } = req.body; // value = tagId
+
+        const tag = await Tag.findOne({tagId: value});
+
+        if(!tag) {
+            res.status(400).send({message: 'Tag niet gekoppeld'});
+            return false
+        }
+
+        const existingLogin = People.findOne({tagId: tag._id});
+        if(existingLogin) {
+            await People.deleteOne({tagId: tag._id});
+        }
+
+        res.send({message: "Success"});
     } catch (e) {
         res.status(500).send({type: e.message});
     }

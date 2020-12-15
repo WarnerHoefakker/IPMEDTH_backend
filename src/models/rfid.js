@@ -2,13 +2,14 @@ const mongoose = require('../db/mongoose');
 
 const rfidSchema = mongoose.Schema({
     tagId: {
-        type: Number,
+        type: String,
         required: true,
         unique: true
     },
     appId: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     levelId: {
         type: mongoose.Schema.Types.ObjectId,

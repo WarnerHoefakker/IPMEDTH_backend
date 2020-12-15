@@ -15,10 +15,11 @@ const roomSchema = mongoose.Schema({
         required: true,
         ref: 'Level'
     },
-    rfidTag: {
+    tagId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'Tag'
+        ref: 'Tag',
+        unique: true
     }
 },{timestamps:true});
 
