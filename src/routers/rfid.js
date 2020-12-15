@@ -115,7 +115,7 @@ router.post('/rfid/logout', async (req, res) => {
     } catch (e) {
         res.status(500).send({type: e.message});
     }
-})
+});
 
 router.get('/rfidall', async (req, res) => {
 
