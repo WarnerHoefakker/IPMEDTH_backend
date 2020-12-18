@@ -89,6 +89,8 @@ router.post('/rfid/login', async (req, res) => {
 
         await newLogin.save();
 
+        EventEmitter.emit('new-login', {eventAppId: tag.appId, tagId: tag._id});
+
         res.send({newLogin});
     } catch (e) {
         res.status(500).send({type: e.message});
@@ -110,6 +112,8 @@ router.post('/rfid/logout', async (req, res) => {
         if(existingLogin) {
             await People.deleteOne({tagId: tag._id});
         }
+
+        EventEmitter.emit('new-login', {eventAppId: tag.appId, tagId: tag._id});
 
         res.send({message: "Success"});
     } catch (e) {
