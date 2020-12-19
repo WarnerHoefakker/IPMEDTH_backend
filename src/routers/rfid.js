@@ -45,6 +45,7 @@ router.post('/rfid/add', async(req, res) => {
         }
 
         // Als de app al gekoppeld is aan een tag wordt deze koppeling verwijderd
+        // TODO: ook uit people verwijderen
         const existingApp = await Tag.findOne({appId});
         if(existingApp) {
             await Tag.deleteOne({appId});
