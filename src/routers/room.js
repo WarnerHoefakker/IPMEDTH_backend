@@ -27,7 +27,7 @@ router.get('/rooms', async (req, res) => {
             filter.levelId = level._id;
         }
 
-        const rooms = await Room.find(filter);
+        const rooms = await Room.find(filter).populate("levelId");
         const adjustedRooms = JSON.parse(JSON.stringify(rooms))
 
         for(const room of adjustedRooms){
