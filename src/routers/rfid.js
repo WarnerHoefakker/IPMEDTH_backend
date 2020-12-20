@@ -7,9 +7,9 @@ const LoggedInTagsLog = require('../models/logged_in_tags_log');
 
 const EventEmitter = require('../EventEmitter');
 
-router.get('/rfid', async (req, res) => {
+router.get('/rfid/tagid/:appId', async (req, res) => {
     try {
-        const {appId} = req.body;
+        const {appId} = req.params;
 
         const tag = await Tag.findOne({appId});
 
