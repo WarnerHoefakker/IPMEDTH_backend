@@ -16,6 +16,8 @@ app.use(roomRouter);
 app.use(peopleRouter);
 app.use(levelRouter);
 
-app.listen(process.env.PORT || 3001, () => {
+const server = app.listen(process.env.PORT || 3001, () => {
     console.log('server is up on port ', process.env.PORT || 3001)
 });
+
+module.exports = server;
