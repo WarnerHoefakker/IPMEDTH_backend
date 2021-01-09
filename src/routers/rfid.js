@@ -7,6 +7,15 @@ const LoggedInTagsLog = require('../models/logged_in_tags_log');
 
 const EventEmitter = require('../EventEmitter');
 
+const logPeopleAmount = (room) => {
+    const today = new Date();
+
+    People.countDocuments({ roomId: room._id, createdAt: { $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate())}}, async (err, count) => {
+        const newTagLog = new LoggedInTagsLog({peopleAmount: count, roomId: room._id, levelId: room.levelId});
+        await newTagLog.save();
+    });
+}
+
 router.get('/rfid/tagid/:appId', async (req, res) => {
     try {
         const {appId} = req.params;
@@ -81,18 +90,26 @@ router.post('/rfid/login', async (req, res) => {
             return false
         }
 
-        const existingLogin = People.findOne({tagId: tag._id});
+        const existingLogin = await People.findOne({tagId: tag._id}).populate('roomId');
         if(existingLogin) {
             await People.deleteOne({tagId: tag._id});
+
+            // Als de gebruiker in een ander lokaal inlogt wordt de log van het oude lokaal ook opgeslagen
+            if(room.roomId !== existingLogin.roomId.roomId) {
+                logPeopleAmount(existingLogin.roomId)
+            }
         }
 
         const newLogin = new People({tagId: tag._id, roomId: room._id, roomName: room.roomName, levelId: room.levelId});
 
         await newLogin.save();
 
+        // Sla het aantal mensen op dat in het lokaal is
+        logPeopleAmount(room);
+
         EventEmitter.emit('new-login', {eventAppId: tag.appId, tagId: tag._id});
 
-        res.send({newLogin});
+        res.send({existingLogin, newLogin});
     } catch (e) {
         res.status(500).send({type: e.message});
     }
@@ -100,7 +117,7 @@ router.post('/rfid/login', async (req, res) => {
 
 router.post('/rfid/logout', async (req, res) => {
     try {
-        const { value } = req.body; // value = tagId
+        const { value } = req.body;
 
         const tag = await Tag.findOne({tagId: value});
 
@@ -109,9 +126,11 @@ router.post('/rfid/logout', async (req, res) => {
             return false
         }
 
-        const existingLogin = People.findOne({tagId: tag._id});
+        const existingLogin = await People.findOne({tagId: tag._id}).populate('roomId');
         if(existingLogin) {
             await People.deleteOne({tagId: tag._id});
+
+            logPeopleAmount(existingLogin.roomId)
         }
 
         EventEmitter.emit('new-login', {eventAppId: tag.appId, tagId: tag._id});
@@ -120,22 +139,6 @@ router.post('/rfid/logout', async (req, res) => {
     } catch (e) {
         res.status(500).send({type: e.message});
     }
-});
-
-router.get('/rfidall', async (req, res) => {
-
-    const level = await Tag.find({});
-
-    for (i = 0; i < level.length; i++) {
-      if (level[i].value == 559494754261) {
-        Tag.deleteOne({ tagId: 559494754261 }, function (err) {
-          if (err) return console.log(err);
-        });
-      }
-    }
-
-
-    res.send(level);
 });
 
 module.exports = router;

@@ -30,11 +30,11 @@ router.get('/rooms', async (req, res) => {
         const rooms = await Room.find(filter).populate("levelId");
         const adjustedRooms = JSON.parse(JSON.stringify(rooms))
 
-        for(const room of adjustedRooms){
+        for (const room of adjustedRooms) {
             let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
             let people = await People.countDocuments({roomId: room._id}).exec();
 
-            if(co2 == null){
+            if (co2 == null) {
                 co2 = {value: 0}
             }
 
@@ -52,12 +52,12 @@ router.get('/rooms', async (req, res) => {
     }
 });
 
-router.get('/:roomId/currentstatus', async(req, res) => {
-    try{
+router.get('/:roomId/currentstatus', async (req, res) => {
+    try {
         const room = await Room.findOne({roomId: req.params.roomId});
         let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
 
-        if(co2 == null){
+        if (co2 == null) {
             co2 = {value: 0}
         }
 
@@ -78,7 +78,7 @@ router.get('/:roomId/currentstatus', async(req, res) => {
 
         res.send(response);
 
-    } catch(e){
+    } catch (e) {
         res.status(500).send({type: e.message});
     }
 });
@@ -106,7 +106,7 @@ router.get('/rooms/:roomId/currentstatus', serverSentEvents, async (req, res) =>
 
                 const co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
 
-                const peopleAmount = await People.countDocuments({ roomId: room._id }).exec();
+                const peopleAmount = await People.countDocuments({roomId: room._id}).exec();
 
                 const response = {
                     co2: {
@@ -136,102 +136,293 @@ router.get('/rooms/:roomId/currentstatus', serverSentEvents, async (req, res) =>
 });
 
 router.get('/rooms/:roomId/history', async (req, res) => {
+    try {
+        const {roomId} = req.params;
 
-    const room = await Room.findOne({roomId: 'LC4044'});
+        const room = await Room.findOne({roomId: roomId});
 
-    var lastWeek = new Date();
-    lastWeek.setDate(lastWeek.getDate() -7);
+        let lastWeek = new Date();
+        lastWeek.setDate(lastWeek.getDate() - 7);
 
-    const co2Week = await CO2.aggregate([
-        {
-            $match: {
-                roomId: room._id,
-                createdAt: {$gt: lastWeek}
+        let yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const dayLabels = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+
+        const co2Week = await CO2.aggregate([
+            {
+                $match: {
+                    roomId: room._id,
+                    createdAt: {$gt: lastWeek}
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        "year": {"$year": "$createdAt"},
+                        "month": {"$month": "$createdAt"},
+                        "day": {"$dayOfMonth": "$createdAt"},
+                        "dayOfWeek": {"$dayOfWeek": "$createdAt"},
+                    },
+                    average: {$avg: '$value'}
+                }
             }
-        },
-        {
-            $group: {
-                _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"},},
-                average: {$avg: '$value'}
+        ]);
+
+        const co2day = await CO2.aggregate([
+            {
+                $match: {
+                    roomId: room._id,
+                    createdAt: {$gt: yesterday}
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        "year": {"$year": "$createdAt"},
+                        "month": {"$month": "$createdAt"},
+                        "day": {"$dayOfMonth": "$createdAt"},
+                        hour: {"$hour": "$createdAt"}
+                    },
+                    average: {$avg: '$value'}
+                }
+            }
+        ]);
+
+        let co2WeekValues = [];
+        for (let i = 0; i < co2Week.length; i++) {
+            co2WeekValues.push({
+                timestamp: dayLabels[co2Week[i]._id.dayOfWeek - 1],
+                co2Value: co2Week[i].average
+            })
+        }
+        let co2DayValues = [];
+        for (let i = 0; i < co2day.length; i++) {
+            const hour = co2day[i]._id.hour + 1;
+
+            if (hour >= 8 && hour <= 18) {
+                const hourString = String("0" + hour).slice(-2);
+                co2DayValues.push({
+                    timestamp: hourString,
+                    co2Value: co2day[i].average
+                })
             }
         }
-    ]);
 
-    const co2day = await CO2.aggregate([
-        {
-            $match: {
-                createdAt: {$gt: lastWeek}
+        const peopleWeek = await LoggedInTagsLog.aggregate([
+            {
+                $match: {
+                    createdAt: {$gt: lastWeek}, roomId: room._id
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        "year": {"$year": "$createdAt"},
+                        "month": {"$month": "$createdAt"},
+                        "day": {"$dayOfMonth": "$createdAt"},
+                        "dayOfWeek": {"$dayOfWeek": "$createdAt"},
+                    },
+                    average: {$avg: '$peopleAmount'}
+                }
             }
-        },
-        {
-            $group: {
-                _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"}, hour: {"$hour": "$createdAt"}},
-                average: {$avg: '$value'}
-            }
-        }
-    ]);
-
-    let co2WeekValues = {};
-    for(let i = 0; i < co2Week.length; i ++){
-        let date = co2Week[i]._id.day.toString()+ '-' + co2Week[i]._id.month.toString() + '-' + co2Week[i]._id.year.toString();
-        co2WeekValues[date] = co2Week[i].average;
-    }
-    let co2DayValues = {};
-    for(let i = 0; i < co2day.length; i ++){
-        let date = co2day[i]._id.hour.toString()+ ':00';
-        co2DayValues[date] = co2day[i].average;
-    }
-    const peopleWeek = await LoggedInTagsLog.aggregate([
-        {
-            $match: {
-                createdAt: {$gt: lastWeek}, roomId: room._id
-            }
-        },
-        {
-            $group: {
-                _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"}},
-                average: {$avg: '$peopleAmount'}
-            }
-        }
         ]);
 
         const peopleDay = await LoggedInTagsLog.aggregate([
             {
                 $match: {
-                  createdAt: {$gt: lastWeek}, roomId: room._id
+                    createdAt: {
+                        $gt: yesterday
+                    },
+                    roomId: room._id
                 }
-              },
-              {
+            },
+            {
                 $group: {
-                    _id: {"year": {"$year": "$createdAt"}, "month": {"$month": "$createdAt"}, "day": {"$dayOfMonth": "$createdAt"}, hour: {"$hour": "$createdAt"}},
+                    _id: {
+                        "year": {"$year": "$createdAt"},
+                        "month": {"$month": "$createdAt"},
+                        "day": {"$dayOfMonth": "$createdAt"},
+                        hour: {"$hour": "$createdAt"}
+                    },
                     average: {$avg: '$peopleAmount'}
                 }
             }
-          ]);
+        ]);
 
-          let peopleWeekValues = {};
-          for(let i = 0; i < peopleWeek.length; i ++){
-              let date = peopleWeek[i]._id.day.toString()+ '-' + peopleWeek[i]._id.month.toString() + '-' + peopleWeek[i]._id.year.toString();
-              peopleWeekValues[date] = peopleWeek[i].average;
-          }
-          let peopleDayValues = {};
-          for(let i = 0; i < peopleDay.length; i ++){
-              let date = peopleDay[i]._id.hour.toString()+ ':00';
-              peopleDayValues[date] = peopleDay[i].average;
-          }
+        let peopleWeekValues = [];
+        const peopleWeekLabels = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+        for (let i = 0; i < peopleWeek.length; i++) {
+            let day = dayLabels[peopleWeek[i]._id.dayOfWeek - 1];
+            peopleWeekValues.push({
+                timestamp: day,
+                amountOfPeople: peopleWeek[i].average
+            })
 
-    res.send({
-            today: {
-                co2: co2DayValues,
-                people: peopleDayValues
-            },
-            lastweek: {
-                co2: co2WeekValues,
-                people: peopleWeekValues
+            const index = peopleWeekLabels.indexOf(day);
+            if (index !== -1) {
+                peopleWeekLabels.splice(index, 1);
             }
-    });
+        }
+
+        for (let i = 0; i < peopleWeekLabels.length; i++) {
+            peopleWeekValues.push({
+                timestamp: peopleWeekLabels[i],
+                amountOfPeople: 0
+            })
+        }
+
+        let peopleDayValues = [];
+        let peopleDayLabels = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18'];
+        for (let i = 0; i < peopleDay.length; i++) {
+            const hour = peopleDay[i]._id.hour + 1;
+
+            if (hour >= 8 && hour <= 18) {
+                const hourString = String("0" + hour).slice(-2);
+                peopleDayValues.push({
+                    timestamp: hourString,
+                    amountOfPeople: peopleDay[i].average
+                });
+
+                const index = peopleDayLabels.indexOf(hour);
+                if (index !== -1) {
+                    peopleDayLabels.splice(index, 1);
+                }
+            }
+        }
+
+        for (let i = 0; i < peopleDayLabels.length; i++) {
+            peopleDayValues.push({
+                timestamp: peopleDayLabels[i],
+                amountOfPeople: 0
+            })
+        }
+
+        res.send({
+            peopleData: {
+                today: peopleDayValues,
+                week: peopleWeekValues,
+                min: 0,
+                max: room.peopleAmount
+            },
+            co2Data: {
+                today: co2DayValues,
+                week: co2WeekValues,
+                min: 0,
+                max: 1600
+            }
+        });
+    } catch (e) {
+        res.status(500).send({type: e.message});
+    }
 
 });
+
+router.get('/rooms/:roomId/averageOccupation', async (req, res) => {
+    try {
+        const {roomId} = req.params;
+
+        const room = await Room.findOne({roomId: roomId});
+
+        const dayLabels = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+
+        const peopleWeek = await LoggedInTagsLog.aggregate([
+            {
+                $match: {
+                    roomId: room._id
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        "dayOfWeek": {"$dayOfWeek": "$createdAt"},
+                    },
+                    average: {$avg: '$peopleAmount'}
+                }
+            }
+        ]);
+
+        const peopleDay = await LoggedInTagsLog.aggregate([
+            {
+                $match: {
+                    roomId: room._id
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        "dayOfWeek": {"$dayOfWeek": "$createdAt"},
+                        hour: {"$hour": "$createdAt"}
+                    },
+                    average: {$avg: '$peopleAmount'}
+                }
+            }
+        ]);
+
+        console.log(peopleDay);
+
+        let peopleWeekValues = [];
+        const peopleWeekLabels = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+        for (let i = 0; i < peopleWeek.length; i++) {
+            let day = dayLabels[peopleWeek[i]._id.dayOfWeek - 1];
+            peopleWeekValues.push({
+                timestamp: day,
+                amountOfPeople: peopleWeek[i].average
+            })
+
+            const index = peopleWeekLabels.indexOf(day);
+            if (index !== -1) {
+                peopleWeekLabels.splice(index, 1);
+            }
+        }
+
+        for (let i = 0; i < peopleWeekLabels.length; i++) {
+            peopleWeekValues.push({
+                timestamp: peopleWeekLabels[i],
+                amountOfPeople: 0
+            })
+        }
+
+        let peopleDayValues = [];
+        let peopleDayLabels = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18'];
+        const today = new Date();
+        for (let i = 0; i < peopleDay.length; i++) {
+            if (dayLabels[peopleDay[i]._id.dayOfWeek - 1] === dayLabels[today.getDay()]) {
+                const hour = peopleDay[i]._id.hour + 1;
+
+                if (hour >= 8 && hour <= 18) {
+                    const hourSting = String("0" + hour).slice(-2);
+                    peopleDayValues.push({
+                        timestamp: hourSting,
+                        amountOfPeople: peopleDay[i].average
+                    });
+
+                    const index = peopleDayLabels.indexOf(hour);
+                    if (index !== -1) {
+                        peopleDayLabels.splice(index, 1);
+                    }
+                }
+            }
+        }
+
+        for (let i = 0; i < peopleDayLabels.length; i++) {
+            peopleDayValues.push({
+                timestamp: peopleDayLabels[i],
+                amountOfPeople: 0
+            })
+        }
+
+        res.status(201).send(
+            {
+                week: peopleWeekValues,
+                day: peopleDayValues,
+                min: 0,
+                max: room.peopleAmount
+            });
+    } catch (e) {
+        res.status(500).send({type: e.message});
+    }
+})
 
 router.post('/rooms/add', async (req, res) => {
     try {

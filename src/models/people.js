@@ -21,7 +21,7 @@ const roomSchema = mongoose.Schema({
         ref: 'Tag',
         unique: true
     }
-},{timestamps:true});
+},{timestamps: true});
 
 const People = mongoose.model('People', roomSchema);
 
