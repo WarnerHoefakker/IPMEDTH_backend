@@ -18,23 +18,33 @@ const sendWelcomeMessage = (roomName, token, status) => {
         green: 'goed'
     }
 
-    sendMessage(
-        {
-            title: 'Welkom in lokaal ' + roomName,
-            body: 'De status van lokaal ' + roomName + ' is ' + statusObj[status]
-        },
-        token
-    )
+    try {
+        sendMessage(
+            {
+                title: 'Welkom in lokaal ' + roomName,
+                body: 'De status van lokaal ' + roomName + ' is ' + statusObj[status]
+            },
+            token
+        )
+    } catch (e) {
+        console.log(e)
+    }
+
 }
 
 const sendTooManyPeopleMessage = (roomName, token) => {
-    sendMessage(
-        {
-            title: 'Veiligheidswaarschuwing',
-            body: 'Er zijn te veel mensen aanwezig in lokaal ' + roomName
-        },
-        token
-    )
+    try {
+        sendMessage(
+            {
+                title: 'Veiligheidswaarschuwing',
+                body: 'Er zijn te veel mensen aanwezig in lokaal ' + roomName
+            },
+            token
+        )
+    } catch (e) {
+        console.log(e);
+    }
+
 }
 
 const sendMessage = (notification, token) => {

@@ -62,8 +62,7 @@ router.post('/rfid/add', async (req, res) => {
         // Als de tag al gebruikt wordt door een andere app, kan deze niet gekoppeld worden
         const existingTag = await Tag.findOne({tagId});
         if (existingTag && existingTag.appId !== appId) {
-            res.status(400).send({message: 'Tag is al in gebruik'});
-            return false
+            await Tag.deleteOne({tagId});
         }
 
         // Als de app al gekoppeld is aan een tag wordt deze koppeling verwijderd
@@ -131,11 +130,11 @@ router.post('/rfid/login', async (req, res) => {
         sendWelcomeMessage(room.roomName, tag.firebaseToken, safetyLevel);
 
         // Stuur notificatie als er te veel mensen zijn
-        if(count > 0) { // TODO: op basis van veiligheidsniveau
+        if (count > (room.peopleAmount * 0.9)) {
             // Haal alle mensen in het lokaal op voor het versturen van een notificatie
             const people = await People.find({roomName: room.roomName}).populate('tagId');
 
-            for(let i = 0; i < people.length; i++) {
+            for (let i = 0; i < people.length; i++) {
                 sendTooManyPeopleMessage(room.roomName, people[i].tagId.firebaseToken);
             }
         }
