@@ -14,4 +14,20 @@ const determineSafetyLevel = (co2Value, peopleAmount, maxPeople) => {
         return 'grey';
 };
 
-module.exports = determineSafetyLevel;
+const determineSafetyLevelPeople = (peopleAmount, maxPeople) => {
+    const peoplePercentage = peopleAmount / maxPeople * 100;
+
+    if (peoplePercentage >= 80)
+        return 'red';
+    else if ((peoplePercentage >= 60 && peoplePercentage < 80))
+        return 'orange';
+    else if ((peoplePercentage >= 0 && peoplePercentage < 60))
+        return 'green';
+    else
+        return 'grey';
+};
+
+module.exports = {
+    determineSafetyLevel,
+    determineSafetyLevelPeople
+};

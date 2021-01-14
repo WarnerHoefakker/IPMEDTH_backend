@@ -6,7 +6,7 @@ const Level = require('../models/level');
 const CO2 = require('../models/co2');
 const People = require('../models/people');
 const EventEmitter = require('../EventEmitter');
-const determineSafetyLevel = require('../determineSafetyLevel');
+const {determineSafetyLevel} = require('../determineSafetyLevel');
 const LoggedInTagsLog = require('../models/logged_in_tags_log');
 
 router.get('/rooms', async (req, res) => {

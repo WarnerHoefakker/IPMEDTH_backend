@@ -1,4 +1,4 @@
-const determineSafetyLevel = require('./determineSafetyLevel');
+const {determineSafetyLevel} = require('./determineSafetyLevel');
 
 // co2:     good: 400 - 800,    medium: 800 - 1000,     bad: > 1000
 // people:  good: 0%-60%,       medium: 60%-80%,        bad: > 80%

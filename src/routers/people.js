@@ -5,7 +5,7 @@ const People = require('../models/people');
 const Tag = require('../models/rfid');
 const Room = require('../models/room');
 const CO2 = require('../models/co2');
-const determineSafetyLevel = require('../determineSafetyLevel');
+const {determineSafetyLevel} = require('../determineSafetyLevel');
 const calculateTimePresent = require('../calculateTimePresent');
 
 router.get('/people/amount/:roomId', async (req, res) => {

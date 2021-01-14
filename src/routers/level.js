@@ -5,7 +5,7 @@ const Room = require('../models/room');
 const CO2 = require('../models/co2');
 const People = require('../models/people');
 
-const determineSafetyLevel = require('../determineSafetyLevel');
+const {determineSafetyLevel} = require('../determineSafetyLevel');
 
 router.get('/levels/:levelName/status', async (req, res) => {
     try {

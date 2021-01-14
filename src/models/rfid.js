@@ -11,6 +11,11 @@ const rfidSchema = mongoose.Schema({
         required: true,
         unique: true
     },
+    firebaseToken: {
+        type: String,
+        required: true,
+        unique: true
+    },
     // levelId: { //TODO: kan dit weg??
     //     type: mongoose.Schema.Types.ObjectId,
     //     required: false,
