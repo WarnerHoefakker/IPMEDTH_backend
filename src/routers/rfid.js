@@ -9,6 +9,7 @@ const {sendWelcomeMessage, sendTooManyPeopleMessage} = require('../sendNotificat
 const {determineSafetyLevel, determineSafetyLevelPeople} = require('../determineSafetyLevel');
 
 const EventEmitter = require('../EventEmitter');
+const {sendSafetyLevelMessage} = require("../sendNotification");
 
 const logPeopleAmount = async (room) => {
     const today = new Date();
@@ -91,6 +92,17 @@ router.post('/rfid/login', async (req, res) => {
 
         const room = await Room.findOne({roomId: roomid});
         const tag = await Tag.findOne({tagId: value});
+        let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
+
+        // bereken het huidige veiligheidsniveau om dit te kunnen vergelijken met het nieuwe veiligheidsniveau voor het sturen van een notificatie
+        const today = new Date();
+
+        const amountOfPeople = await People.countDocuments({
+            roomId: room._id,
+            createdAt: {$gt: new Date(today.getFullYear(), today.getMonth(), today.getDate())}
+        }, async (err, count) =>  count);
+
+        let currentSafetyLevel = determineSafetyLevel(co2.value, amountOfPeople, room.peopleAmount);
 
         if (!tag) {
             res.status(400).send({message: 'Tag niet gekoppeld'});
@@ -119,8 +131,7 @@ router.post('/rfid/login', async (req, res) => {
         // Sla het aantal mensen op dat in het lokaal is
         const count = await logPeopleAmount(room);
 
-        // Stuur welkom notificatie
-        let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
+        // Stuur welkom notification
 
         if (co2 == null) {
             co2 = {value: 0}
@@ -139,6 +150,19 @@ router.post('/rfid/login', async (req, res) => {
             }
         }
 
+        // Stuur notificatie als het veiligheidsniveau is veranderd
+        let newSafetyLevel = determineSafetyLevel(co2.value, count, room.peopleAmount);
+
+        console.log(currentSafetyLevel, newSafetyLevel)
+
+        if(newSafetyLevel !== currentSafetyLevel) {
+            const people = await People.find({roomName: room.roomName}).populate('tagId');
+
+            for (let i = 0; i < people.length; i++) {
+                sendSafetyLevelMessage(room.roomName, newSafetyLevel, people[i].tagId.firebaseToken)
+            }
+        }
+
         res.send({existingLogin, newLogin});
     } catch (e) {
         res.status(500).send({type: e.message});
@@ -150,20 +174,44 @@ router.post('/rfid/logout', async (req, res) => {
         const {value} = req.body;
 
         const tag = await Tag.findOne({tagId: value});
+        const existingLogin = await People.findOne({tagId: tag._id}).populate('roomId');
+
+        const room = await Room.findOne({roomId: existingLogin.roomId.roomId});
+        const co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
 
         if (!tag) {
             res.status(400).send({message: 'Tag niet gekoppeld'});
             return false
         }
 
-        const existingLogin = await People.findOne({tagId: tag._id}).populate('roomId');
+        // bereken het huidige veiligheidsniveau om dit te kunnen vergelijken met het nieuwe veiligheidsniveau voor het sturen van een notificatie
+        const today = new Date();
+
+        const amountOfPeople = await People.countDocuments({
+            roomId: room._id,
+            createdAt: {$gt: new Date(today.getFullYear(), today.getMonth(), today.getDate())}
+        }, async (err, count) =>  count);
+
+        let currentSafetyLevel = determineSafetyLevel(co2.value, amountOfPeople, room.peopleAmount);
+
         if (existingLogin) {
             await People.deleteOne({tagId: tag._id});
 
-            logPeopleAmount(existingLogin.roomId)
-        }
+            const count = await logPeopleAmount(existingLogin.roomId)
 
-        EventEmitter.emit('new-login', {eventAppId: tag.appId, tagId: tag._id});
+            // Stuur notificatie als het veiligheidsniveau is veranderd
+            let newSafetyLevel = determineSafetyLevel(co2.value, count, room.peopleAmount);
+
+            console.log(currentSafetyLevel, newSafetyLevel)
+
+            if(newSafetyLevel !== currentSafetyLevel) {
+                const people = await People.find({roomName: room.roomName}).populate('tagId');
+
+                for (let i = 0; i < people.length; i++) {
+                    sendSafetyLevelMessage(room.roomName, newSafetyLevel, people[i].tagId.firebaseToken)
+                }
+            }
+        }
 
         res.send({message: "Success"});
     } catch (e) {
