@@ -45,7 +45,7 @@ router.get('/rfid/tagid/:appId', async (req, res) => {
 
 router.post('/rfid/add', async (req, res) => {
     try {
-        let {tagId, appId} = req.body;
+        let {tagId, appId, firebaseToken} = req.body;
 
         if (typeof tagId === "number") {
             tagId = tagId.toString();
@@ -53,6 +53,10 @@ router.post('/rfid/add', async (req, res) => {
 
         if (typeof appId === "number") {
             appId = appId.toString();
+        }
+
+        if (typeof firebaseToken === "number") {
+            firebaseToken = firebaseToken.toString();
         }
 
         // Als de tag al gebruikt wordt door een andere app, kan deze niet gekoppeld worden
@@ -69,7 +73,7 @@ router.post('/rfid/add', async (req, res) => {
             await Tag.deleteOne({appId});
         }
 
-        const newTag = new Tag({tagId, appId});
+        const newTag = new Tag({tagId, appId, firebaseToken});
         await newTag.save();
 
         res.send(newTag);
