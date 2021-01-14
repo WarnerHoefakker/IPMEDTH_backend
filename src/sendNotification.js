@@ -47,6 +47,34 @@ const sendTooManyPeopleMessage = (roomName, token) => {
 
 }
 
+const sendSafetyLevelMessage = (roomName, safetyLevel, token) => {
+    try {
+        sendMessage(
+            {
+                title: 'Veiligheidswaarschuwing',
+                body: 'Het veiligheidsniveau van lokaal ' + roomName + ' is veranderd naar ' + safetyLevel + '.'
+            },
+            token
+        )
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+const sendCo2LevelMessage = (roomName, token) => {
+    try {
+        sendMessage(
+            {
+                title: 'Veiligheidswaarschuwing',
+                body: 'De luchtkwaliteit van lokaal ' + roomName + ' is te hoog. Ventileer de ruimte.'
+            },
+            token
+        )
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 const sendMessage = (notification, token) => {
     const message = {
         notification,
@@ -65,5 +93,7 @@ const sendMessage = (notification, token) => {
 
 module.exports = {
     sendWelcomeMessage,
-    sendTooManyPeopleMessage
+    sendTooManyPeopleMessage,
+    sendCo2LevelMessage,
+    sendSafetyLevelMessage
 };
