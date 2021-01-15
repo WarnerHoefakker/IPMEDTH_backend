@@ -17,7 +17,7 @@ afterAll(() => {
 });
 
 describe('POST /rooms/add', function() {
-    it('Should add a room successfully', function(done) {
+    it('Should add a room', function(done) {
         supertest(server)
             .post('/rooms/add')
             .send({
@@ -151,7 +151,7 @@ describe('GET /rooms', function() {
                 done();
             });
     });
-})
+});
 
 describe('GET /:roomId/currentstatus', function() {
     it('Should return status \'green\'', function(done) {
@@ -181,4 +181,4 @@ describe('GET /:roomId/currentstatus', function() {
                 done();
             });
     });
-})
+});

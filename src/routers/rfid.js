@@ -36,7 +36,7 @@ router.get('/rfid/tagid/:appId', async (req, res) => {
         if (tag) {
             res.send({tagId: tag.tagId});
         } else {
-            res.status(404).send({message: 'Geen tag gekoppeld'})
+            res.status(404).send({error: 'Geen tag gekoppeld'})
         }
     } catch (e) {
         res.status(500).send({type: e.message});
@@ -76,7 +76,7 @@ router.post('/rfid/add', async (req, res) => {
         const newTag = new Tag({tagId, appId, firebaseToken});
         await newTag.save();
 
-        res.send(newTag);
+        res.status(201).send(newTag);
     } catch (e) {
         res.status(500).send({type: e.message});
     }
@@ -91,8 +91,20 @@ router.post('/rfid/login', async (req, res) => {
         }
 
         const room = await Room.findOne({roomId: roomid});
+
+        if(!room)
+            return res.status(404).send({error: "room does not exist"});
+
         const tag = await Tag.findOne({tagId: value});
+
+        if(!tag)
+            return res.status(404).send({error: "tag does not exist"});
+
         let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
+
+        if (co2 == null) {
+            co2 = {value: 0}
+        }
 
         // bereken het huidige veiligheidsniveau om dit te kunnen vergelijken met het nieuwe veiligheidsniveau voor het sturen van een notificatie
         const today = new Date();
@@ -132,11 +144,6 @@ router.post('/rfid/login', async (req, res) => {
         const count = await logPeopleAmount(room);
 
         // Stuur welkom notification
-
-        if (co2 == null) {
-            co2 = {value: 0}
-        }
-
         let safetyLevel = determineSafetyLevel(co2.value, count, room.peopleAmount);
         sendWelcomeMessage(room.roomName, tag.firebaseToken, safetyLevel);
 
@@ -163,7 +170,7 @@ router.post('/rfid/login', async (req, res) => {
             }
         }
 
-        res.send({existingLogin, newLogin});
+        res.status(201).send(newLogin);
     } catch (e) {
         res.status(500).send({type: e.message});
     }
@@ -174,14 +181,21 @@ router.post('/rfid/logout', async (req, res) => {
         const {value} = req.body;
 
         const tag = await Tag.findOne({tagId: value});
+        if (!tag) {
+            res.status(404).send({error: 'Tag niet gekoppeld'});
+            return false
+        }
+
         const existingLogin = await People.findOne({tagId: tag._id}).populate('roomId');
 
-        const room = await Room.findOne({roomId: existingLogin.roomId.roomId});
-        const co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
+        if(!existingLogin)
+            return res.status(200).send({message: "Success"});
 
-        if (!tag) {
-            res.status(400).send({message: 'Tag niet gekoppeld'});
-            return false
+        const room = await Room.findOne({roomId: existingLogin.roomId.roomId});
+        let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
+
+        if(co2 === null) {
+            co2 = {value: 0}
         }
 
         // bereken het huidige veiligheidsniveau om dit te kunnen vergelijken met het nieuwe veiligheidsniveau voor het sturen van een notificatie
@@ -202,8 +216,6 @@ router.post('/rfid/logout', async (req, res) => {
             // Stuur notificatie als het veiligheidsniveau is veranderd
             let newSafetyLevel = determineSafetyLevel(co2.value, count, room.peopleAmount);
 
-            console.log(currentSafetyLevel, newSafetyLevel)
-
             if(newSafetyLevel !== currentSafetyLevel) {
                 const people = await People.find({roomName: room.roomName}).populate('tagId');
 
@@ -215,6 +227,7 @@ router.post('/rfid/logout', async (req, res) => {
 
         res.send({message: "Success"});
     } catch (e) {
+        console.log(e)
         res.status(500).send({type: e.message});
     }
 });

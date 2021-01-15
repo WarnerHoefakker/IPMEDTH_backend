@@ -24,6 +24,11 @@ router.post('/co2add', async (req, res) => {
         const { value, roomId } = req.body;
 
         const room = await Room.findOne({roomId});
+
+        if(!room)
+            return res.status(404).send({error: "room doesn\'t exist"})
+
+
         const currentCo2 = await Co2.findOne({roomId: room._id}).sort({createdAt: -1});
 
         // bereken het huidige veiligheidsniveau om dit te kunnen vergelijken met het nieuwe veiligheidsniveau voor het sturen van een notificatie
@@ -34,7 +39,10 @@ router.post('/co2add', async (req, res) => {
             createdAt: {$gt: new Date(today.getFullYear(), today.getMonth(), today.getDate())}
         }, async (err, count) =>  count);
 
-        let currentSafetyLevel = determineSafetyLevel(currentCo2.value, amountOfPeople, room.peopleAmount);
+        let currentSafetyLevel = 'green';
+
+        if(currentCo2 !== null)
+            currentSafetyLevel = determineSafetyLevel(currentCo2.value, amountOfPeople, room.peopleAmount);
 
         const newValue = new Co2({value: value, roomId: room._id});
         await newValue.save();
@@ -76,7 +84,7 @@ router.post('/co2add', async (req, res) => {
             }
         }
 
-        res.send(newValue);
+        res.status(201).send(newValue);
     } catch (e) {
         res.status(500).send({type: e.message});
     }

@@ -12,6 +12,10 @@ router.get('/levels/:levelName/status', async (req, res) => {
         const {levelName} = req.params;
 
         const level = await Level.findOne({levelName});
+
+        if(!level)
+            return res.status(404).send({error: 'level does not exist'})
+
         const rooms = await Room.find({levelId: level._id});
 
         let response = {};
