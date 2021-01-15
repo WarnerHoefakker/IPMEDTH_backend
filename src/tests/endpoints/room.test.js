@@ -151,7 +151,7 @@ describe('GET /rooms', function() {
                 done();
             });
     });
-})
+});
 
 describe('GET /:roomId/currentstatus', function() {
     it('Should return status \'green\'', function(done) {
@@ -181,4 +181,4 @@ describe('GET /:roomId/currentstatus', function() {
                 done();
             });
     });
-})
+});

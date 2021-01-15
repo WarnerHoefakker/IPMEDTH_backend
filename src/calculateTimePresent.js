@@ -2,6 +2,11 @@ const calculateTimePresent = (startDate) => {
     const currentTime = new Date();
     const startTime = new Date(startDate);
 
+    console.log(currentTime, startTime)
+
+    if(startTime > currentTime)
+        return {error: 'Startime is greater than currentTime'}
+
     let minutes = currentTime.getMinutes() - startTime.getMinutes();
     let hours = currentTime.getHours() - startTime.getHours();
 
