@@ -30,6 +30,7 @@
     "supertest": "^6.0.1"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "setupFiles": ["<rootDir>/.jest/setEnvVars.js"]
   }
 }

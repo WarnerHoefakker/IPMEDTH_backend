@@ -28,7 +28,7 @@ router.get('/rooms', async (req, res) => {
         }
 
         const rooms = await Room.find(filter).populate("levelId");
-        const adjustedRooms = JSON.parse(JSON.stringify(rooms))
+        const adjustedRooms = JSON.parse(JSON.stringify(rooms));
 
         for (const room of adjustedRooms) {
             let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
@@ -46,15 +46,21 @@ router.get('/rooms', async (req, res) => {
         }
 
         adjustedRooms.sort((a, b) => (a.safetyLevel > b.safetyLevel) ? 1 : ((b.safetyLevel > a.safetyLevel) ? -1 : 0));
-        res.send(adjustedRooms);
+        return res.send(adjustedRooms);
     } catch (e) {
-        res.status(500).send({type: e.message});
+        console.log("ERRORRRR")
+        console.log(e)
+        return res.status(500).send({type: e.message});
     }
 });
 
 router.get('/:roomId/currentstatus', async (req, res) => {
     try {
         const room = await Room.findOne({roomId: req.params.roomId});
+
+        if(!room)
+            return res.status(404).send({error: 'Room doesn\'t exist'});
+
         let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
 
         if (co2 == null) {
@@ -77,7 +83,6 @@ router.get('/:roomId/currentstatus', async (req, res) => {
         }
 
         res.send(response);
-
     } catch (e) {
         res.status(500).send({type: e.message});
     }
@@ -429,6 +434,11 @@ router.post('/rooms/add', async (req, res) => {
         const {levelName, roomId, roomName, peopleAmount} = req.body;
 
         const level = await Level.findOne({levelName});
+
+        const existingRoom = await Room.findOne({roomId});
+
+        if(existingRoom)
+            return res.status(400).send({error: 'roomId already exists'})
 
         const room = new Room({roomId, roomName, peopleAmount, levelId: level._id});
 
