@@ -17,7 +17,7 @@ afterAll(() => {
 });
 
 describe('POST /rooms/add', function() {
-    it('Should add a room successfully', function(done) {
+    it('Should add a room', function(done) {
         supertest(server)
             .post('/rooms/add')
             .send({
