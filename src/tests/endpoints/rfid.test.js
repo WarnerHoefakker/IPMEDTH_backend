@@ -1,5 +1,5 @@
 const supertest = require("supertest");
-const {beforeAll, afterAll, describe, it} = require("@jest/globals");
+const {beforeAll, afterAll, describe, it, expect} = require("@jest/globals");
 const Room = require("../../models/room");
 const Level = require("../../models/level");
 const People = require("../../models/people");
@@ -65,12 +65,6 @@ beforeAll(async () => {
         levelId: testLevel._id
     });
     await newPeopleLoggedIn.save();
-
-    // const testTag2 = new Tag({tagId: 'testTag2', appId: 'testAppId2', firebaseToken: 'testFirebaseToken2'});
-    // await testTag2.save();
-    //
-    // const newLogin = new People({tagId: testTag._id, roomId: testRoom._id, roomName: testRoom.roomName, levelId: testLevel._id});
-    // await newLogin.save();
 });
 
 afterAll(() => {
@@ -103,10 +97,10 @@ describe('POST /rfid/add', function () {
             .end(function (err, res) {
                 if (err) return done(err);
 
-                expect(res.body.tagId).toBe('testRfidTagId');
-                expect(res.body.appId).toBe('testRfidAppId');
-                expect(res.body.firebaseToken).toBe("testRfidFirebaseToken");
-                //
+                expect(res.body).toHaveProperty('tagId', 'testRfidTagId');
+                expect(res.body).toHaveProperty('appId', 'testRfidAppId');
+                expect(res.body).toHaveProperty('firebaseToken', 'testRfidFirebaseToken');
+
                 expect(res.body).toHaveProperty('_id');
                 expect(res.body).toHaveProperty('createdAt');
                 expect(res.body).toHaveProperty('updatedAt');
@@ -183,6 +177,7 @@ describe('POST /rfid/add', function () {
                 done();
             });
     });
+
     it('Should not add a tag if the appId is missing', function (done) {
         supertest(server)
             .post('/rfid/add')

@@ -56,7 +56,7 @@ describe('GET /people/amount/:roomId', function() {
             });
     });
 
-    it('Should return a 404 error (room doesn\'t exist', function(done) {
+    it('Should return a 404 error (room doesn\'t exist)', function(done) {
         supertest(server)
             .get('/people/amount/bestaatNiet')
             .expect('Content-Type', /json/)
@@ -105,7 +105,7 @@ describe('GET /people/currentlocation/:appId', function() {
             });
     });
 
-    it('Should return a 404 error (appId doesn\'t exist', function(done) {
+    it('Should return a 404 error (appId doesn\'t exist)', function(done) {
         supertest(server)
             .get('/people/currentlocation/bestaatNiet')
             .expect('Content-Type', /json/)

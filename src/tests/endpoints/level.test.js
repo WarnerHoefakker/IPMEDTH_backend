@@ -10,7 +10,7 @@ beforeAll(async () => {
 
     const testLevel = new Level({levelName: 'testLevel'});
     await testLevel.save();
-    const testRoom = new Room({levelId: testLevel._id, roomId: "levelTestRoom", roomName: "levelTestRoom", peopleAmount: 10})
+    const testRoom = new Room({levelId: testLevel._id, roomId: "levelTestRoom", roomName: "levelTestRoom", peopleAmount: 10});
     await testRoom.save();
 });
 
@@ -42,7 +42,7 @@ describe('GET /levels/:levelName/status', function() {
             });
     });
 
-    it('Should return a 404 error (level doesn\'t exist', function(done) {
+    it('Should return a 404 error (level doesn\'t exist)', function(done) {
         supertest(server)
             .get('/levels/testLevelBestaatNiet/status')
             .expect('Content-Type', /json/)

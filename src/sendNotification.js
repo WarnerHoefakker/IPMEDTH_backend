@@ -47,7 +47,7 @@ const sendTooManyPeopleMessage = (roomName, token) => {
 
 }
 
-const sendSafetyLevelMessage = (roomName, safetyLevel, token) => {
+const sendSafetyLevelMessage = (roomName, safetyLevel, oldSafetyLevel, token) => {
     const statusObj = {
         red: 'slecht',
         orange: 'matig',
@@ -58,7 +58,7 @@ const sendSafetyLevelMessage = (roomName, safetyLevel, token) => {
         sendMessage(
             {
                 title: 'Veiligheidswaarschuwing',
-                body: 'Het veiligheidsniveau van lokaal ' + roomName + ' is veranderd naar ' + statusObj[safetyLevel] + '.'
+                body: 'Het veiligheidsniveau van lokaal ' + roomName + ' is veranderd van ' + statusObj[oldSafetyLevel] + ' naar ' + statusObj[safetyLevel] + '.'
             },
             token
         )

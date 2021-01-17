@@ -148,7 +148,8 @@ router.post('/rfid/login', async (req, res) => {
         sendWelcomeMessage(room.roomName, tag.firebaseToken, safetyLevel);
 
         // Stuur notificatie als er te veel mensen zijn
-        if (count > (room.peopleAmount * 0.9)) {
+        if (count > (room.peopleAmount * 0.8)) {
+            console.log(room.peopleAmount * 0.8)
             // Haal alle mensen in het lokaal op voor het versturen van een notificatie
             const people = await People.find({roomName: room.roomName}).populate('tagId');
 
@@ -160,13 +161,11 @@ router.post('/rfid/login', async (req, res) => {
         // Stuur notificatie als het veiligheidsniveau is veranderd
         let newSafetyLevel = determineSafetyLevel(co2.value, count, room.peopleAmount);
 
-        console.log(currentSafetyLevel, newSafetyLevel)
-
         if(newSafetyLevel !== currentSafetyLevel) {
             const people = await People.find({roomName: room.roomName}).populate('tagId');
 
             for (let i = 0; i < people.length; i++) {
-                sendSafetyLevelMessage(room.roomName, newSafetyLevel, people[i].tagId.firebaseToken)
+                sendSafetyLevelMessage(room.roomName, newSafetyLevel, currentSafetyLevel, people[i].tagId.firebaseToken)
             }
         }
 
@@ -220,14 +219,13 @@ router.post('/rfid/logout', async (req, res) => {
                 const people = await People.find({roomName: room.roomName}).populate('tagId');
 
                 for (let i = 0; i < people.length; i++) {
-                    sendSafetyLevelMessage(room.roomName, newSafetyLevel, people[i].tagId.firebaseToken)
+                    sendSafetyLevelMessage(room.roomName, newSafetyLevel, currentSafetyLevel, people[i].tagId.firebaseToken)
                 }
             }
         }
 
         res.send({message: "Success"});
     } catch (e) {
-        console.log(e)
         res.status(500).send({type: e.message});
     }
 });

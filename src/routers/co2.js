@@ -79,7 +79,7 @@ router.post('/co2add', async (req, res) => {
                 const people = await People.find({roomName: room.roomName}).populate('tagId');
 
                 for (let i = 0; i < people.length; i++) {
-                    sendSafetyLevelMessage(room.roomName, newSafetyLevel, people[i].tagId.firebaseToken)
+                    sendSafetyLevelMessage(room.roomName, newSafetyLevel, currentSafetyLevel, people[i].tagId.firebaseToken)
                 }
             }
         }

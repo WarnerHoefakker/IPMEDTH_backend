@@ -2,8 +2,6 @@ const calculateTimePresent = (startDate) => {
     const currentTime = new Date();
     const startTime = new Date(startDate);
 
-    console.log(currentTime, startTime)
-
     if(startTime > currentTime)
         return {error: 'Startime is greater than currentTime'}
 
