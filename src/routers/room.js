@@ -32,7 +32,15 @@ router.get('/rooms', async (req, res) => {
 
         for (const room of adjustedRooms) {
             let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
-            let people = await People.countDocuments({roomId: room._id}).exec();
+
+            let yesterday = new Date();
+            yesterday.setHours(0,0,0,0);
+
+            let tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+
+            let people = await People.countDocuments({roomId: room._id, createdAt: {$gt: yesterday, $lt: tomorrow}}).exec();
 
             if (co2 == null) {
                 co2 = {value: 0}
@@ -65,7 +73,14 @@ router.get('/:roomId/currentstatus', async (req, res) => {
             co2 = {value: 0}
         }
 
-        const peopleAmount = await People.countDocuments({roomId: room._id}).exec();
+        let yesterday = new Date();
+        yesterday.setHours(0,0,0,0);
+
+        let tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+
+        const peopleAmount = await People.countDocuments({roomId: room._id, createdAt: {$gt: yesterday, $lt: tomorrow}}).exec();
 
         const safetyLevel = determineSafetyLevel(co2.value, peopleAmount, room.peopleAmount);
 
@@ -103,10 +118,16 @@ router.get('/rooms/:roomId/history', async (req, res) => {
         const room = await Room.findOne({roomId: roomId});
 
         let lastWeek = new Date();
-        lastWeek.setDate(lastWeek.getDate() - 7);
+        lastWeek.setDate(lastWeek.getDate() - 6);
+        lastWeek.setHours(0,0,0,0)
 
         let yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
+        // yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setHours(0,0,0,0)
+
+        let tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0)
 
         const dayLabels = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 
@@ -114,7 +135,7 @@ router.get('/rooms/:roomId/history', async (req, res) => {
             {
                 $match: {
                     roomId: room._id,
-                    createdAt: {$gt: lastWeek}
+                    createdAt: {$gt: lastWeek, $lt: tomorrow}
                 }
             },
             {
@@ -134,7 +155,7 @@ router.get('/rooms/:roomId/history', async (req, res) => {
             {
                 $match: {
                     roomId: room._id,
-                    createdAt: {$gt: yesterday}
+                    createdAt: {$gt: yesterday, $lt: tomorrow}
                 }
             },
             {
@@ -173,7 +194,7 @@ router.get('/rooms/:roomId/history', async (req, res) => {
         const peopleWeek = await LoggedInTagsLog.aggregate([
             {
                 $match: {
-                    createdAt: {$gt: lastWeek}, roomId: room._id
+                    createdAt: {$gt: lastWeek, $lt: tomorrow}, roomId: room._id
                 }
             },
             {
@@ -192,9 +213,7 @@ router.get('/rooms/:roomId/history', async (req, res) => {
         const peopleDay = await LoggedInTagsLog.aggregate([
             {
                 $match: {
-                    createdAt: {
-                        $gt: yesterday
-                    },
+                    createdAt: {$gt: yesterday, $lt: tomorrow}, //TODO: testen of dit werkt
                     roomId: room._id
                 }
             },
