@@ -15,17 +15,7 @@ const rfidSchema = mongoose.Schema({
         type: String,
         required: true,
         unique: true
-    },
-    // levelId: { //TODO: kan dit weg??
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     required: false,
-    //     ref: 'Level'
-    // },
-    // roomId: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     required: false,
-    //     ref: 'Room'
-    // }
+    }
 },{timestamps:true});
 
 const Tag = mongoose.model('Tag', rfidSchema);

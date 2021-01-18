@@ -15,10 +15,6 @@ let sentNotifications = {
     safetyLevel: {}
 };
 
-router.get('/co2', (req, res) => {
-    res.send({value: 1200});
-});
-
 router.post('/co2add', async (req, res) => {
     try {
         const { value, roomId } = req.body;

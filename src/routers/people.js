@@ -16,7 +16,6 @@ router.get('/people/amount/:roomId', async (req, res) => {
             return res.status(404).send({error: "room does not exist"});
 
         People.countDocuments({ roomName: room.roomName }, function (err, count) {
-          console.log(count);
           res.send({count});
         });
     } catch (e) {
@@ -25,7 +24,6 @@ router.get('/people/amount/:roomId', async (req, res) => {
 });
 
 router.get('/people/currentlocation/:appId', async (req, res) => {
-    //TODO: safety level meesturen, tijd meesturen?
     try {
         const {appId} = req.params;
 
@@ -65,7 +63,6 @@ router.get('/people/currentlocation/:appId', async (req, res) => {
 
         res.send({loggedIn: true, roomName: currentLogin.roomName, roomId: currentLogin.roomId.roomId, levelName: currentLogin.levelId.levelName, startTime: currentLogin.createdAt, safetyLevel, totalTime});
     } catch (e) {
-        console.log(e)
         res.status(500).send({type: e.message});
     }
 })

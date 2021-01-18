@@ -67,10 +67,10 @@ router.post('/rfid/add', async (req, res) => {
         }
 
         // Als de app al gekoppeld is aan een tag wordt deze koppeling verwijderd
-        // TODO: ook uit people verwijderen
         const existingApp = await Tag.findOne({appId});
         if (existingApp) {
             await Tag.deleteOne({appId});
+            await People.deleteOne({tagId: existingApp._id})
         }
 
         const newTag = new Tag({tagId, appId, firebaseToken});
@@ -149,7 +149,6 @@ router.post('/rfid/login', async (req, res) => {
 
         // Stuur notificatie als er te veel mensen zijn
         if (count > (room.peopleAmount * 0.8)) {
-            console.log(room.peopleAmount * 0.8)
             // Haal alle mensen in het lokaal op voor het versturen van een notificatie
             const people = await People.find({roomName: room.roomName}).populate('tagId');
 

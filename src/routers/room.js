@@ -48,8 +48,6 @@ router.get('/rooms', async (req, res) => {
         adjustedRooms.sort((a, b) => (a.safetyLevel > b.safetyLevel) ? 1 : ((b.safetyLevel > a.safetyLevel) ? -1 : 0));
         return res.send(adjustedRooms);
     } catch (e) {
-        console.log("ERRORRRR")
-        console.log(e)
         return res.status(500).send({type: e.message});
     }
 });
@@ -88,11 +86,6 @@ router.get('/:roomId/currentstatus', async (req, res) => {
     }
 });
 
-router.get('/rooms/currentstatus', async (req, res) => {
-    // route voor huidige status van alle lokalen
-    // hierbij ook filter toevoegen (dashboard filter)
-})
-
 router.get('/rooms/:roomId', async (req, res) => {
     try {
         const room = await Room.findOne({roomId: req.params.roomId});
@@ -101,43 +94,6 @@ router.get('/rooms/:roomId', async (req, res) => {
     } catch (e) {
         res.status(500).send({type: e.message});
     }
-});
-
-router.get('/rooms/:roomId/currentstatus', serverSentEvents, async (req, res) => {
-    async function getCo2AndOccupation({roomId}) {
-        try {
-            if (roomId === req.params.roomId) { // alleen als het roomid dat vanuit het event wordt meegegeven hetzelfde is als het roomid waar naar wordt geluisteerd wordt de nieuwe waarde gestuurd
-                const room = await Room.findOne({roomId: req.params.roomId});
-
-                const co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
-
-                const peopleAmount = await People.countDocuments({roomId: room._id}).exec();
-
-                const response = {
-                    co2: {
-                        level: co2.value
-                    },
-                    people: {
-                        amount: peopleAmount,
-                        max: room.peopleAmount
-                    }
-                };
-
-                res.sendEventStreamData(response);
-            }
-        } catch (e) {
-            res.status(500).send({type: e.message});
-        }
-    }
-
-    EventEmitter.on('update-status', getCo2AndOccupation);
-    // TODO: huidige waarde 1x versturen op het moment dat er verbinding gemaakt wordt
-
-    // close connection
-    res.on('close', () => {
-        EventEmitter.removeListener('update-status', getCo2AndOccupation);
-        res.end();
-    });
 });
 
 router.get('/rooms/:roomId/history', async (req, res) => {
@@ -363,8 +319,6 @@ router.get('/rooms/:roomId/averageOccupation', async (req, res) => {
                 }
             }
         ]);
-
-        console.log(peopleDay);
 
         let peopleWeekValues = [];
         const peopleWeekLabels = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
