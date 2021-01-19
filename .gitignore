@@ -5,4 +5,3 @@ config/
 .jest/setEnvVars.js
 src/dummyDataSeeder.js
 .firebase-adminsdk.json
-.firebase-adminsdk.json

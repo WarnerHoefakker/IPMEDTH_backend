@@ -67,18 +67,16 @@ router.get('/:roomId/currentstatus', async (req, res) => {
         if(!room)
             return res.status(404).send({error: 'Room doesn\'t exist'});
 
-        let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
-
-        if (co2 == null) {
-            co2 = {value: 0}
-        }
-
         let yesterday = new Date();
         yesterday.setHours(0,0,0,0);
 
         let tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
+
+        let co2 = await CO2.findOne({roomId: room._id, createdAt: {$gt: yesterday, $lt: tomorrow}}).sort({createdAt: -1});
+
+        if (co2 == null) {
+            co2 = {value: 0}
+        }
 
         const peopleAmount = await People.countDocuments({roomId: room._id, createdAt: {$gt: yesterday, $lt: tomorrow}}).exec();
 
