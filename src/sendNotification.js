@@ -72,7 +72,7 @@ const sendCo2LevelMessage = (roomName, token) => {
         sendMessage(
             {
                 title: 'Veiligheidswaarschuwing',
-                body: 'De luchtkwaliteit van lokaal ' + roomName + ' is te hoog. Ventileer de ruimte.'
+                body: 'De luchtkwaliteit van lokaal ' + roomName + ' is te hoog. Ventileer de ruimte. Door ramen of deuren te openen'
             },
             token
         )
