@@ -5,12 +5,6 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
 });
 
-// notification: {
-//     title: 'Message from node',
-//         body: 'hey there'
-// },
-// token: "eB84KMzKTv2R8WaIuNq4Ua:APA91bFc9R9q0NnhC28OVyTZtllWieM38B9afrij4JkHsECl5FEg1-_lebbN_Npki0H4klMsiNvfbcY_mPY6fcDnBajTcSyJSCTztJn4ZXoHMKhggYDQckvl-Dy9ykr1SU5risylh1VG"
-
 const sendWelcomeMessage = (roomName, token, status) => {
     const statusObj = {
         red: 'slecht',
