@@ -52,8 +52,6 @@ router.post('/co2add', async (req, res) => {
         await newValue.save();
 
         let FIVE_MIN = 5*60*1000;
-        // let FIVE_MIN = 10;
-        // sendCo2LevelMessage(room.roomName, "exoZLlRKT3WNx1quM-WNxc:APA91bG8b9ui5S5fHfl227IwiIRuDlMp3_ZU2r5_A3UmiShj1eE2dYa-7Cm9Q0NdvHv5EUGIWZzOYUS4GAPXl38eDeP_xudpQsP2GlBZH59Ly9qP5xGfah3OMCdZGV042OUdhLvM-AVA");
 
         if(sentNotifications.tooHigh[room.roomId] === undefined || new Date() - sentNotifications.tooHigh[room.roomId].time > FIVE_MIN){
             if(value > 1000 && currentCo2.value <= 1000) {
