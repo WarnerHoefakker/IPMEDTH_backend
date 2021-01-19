@@ -50,8 +50,13 @@ router.get('/people/currentlocation/:appId', async (req, res) => {
 
         const totalTime = calculateTimePresent(currentLogin.createdAt);
 
-        const co2 = await CO2.findOne({roomId: currentLogin.roomId._id}).sort({createdAt: -1});
-        const peopleAmount = await People.countDocuments({ roomId: currentLogin.roomId._id }).exec();
+        let yesterday = new Date();
+        yesterday.setHours(0,0,0,0);
+
+        let tomorrow = new Date();
+
+        const co2 = await CO2.findOne({roomId: currentLogin.roomId._id, createdAt: {$gt: yesterday, $lt: tomorrow}}).sort({createdAt: -1});
+        const peopleAmount = await People.countDocuments({ roomId: currentLogin.roomId._id, createdAt: {$gt: yesterday, $lt: tomorrow} }).exec();
 
         let co2Value = 0;
 

@@ -31,14 +31,12 @@ router.get('/rooms', async (req, res) => {
         const adjustedRooms = JSON.parse(JSON.stringify(rooms));
 
         for (const room of adjustedRooms) {
-            let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
-
             let yesterday = new Date();
             yesterday.setHours(0,0,0,0);
 
             let tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
+
+            let co2 = await CO2.findOne({roomId: room._id, createdAt: {$gt: yesterday, $lt: tomorrow}}).sort({createdAt: -1});
 
             let people = await People.countDocuments({roomId: room._id, createdAt: {$gt: yesterday, $lt: tomorrow}}).exec();
 
