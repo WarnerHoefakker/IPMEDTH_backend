@@ -100,7 +100,12 @@ router.post('/rfid/login', async (req, res) => {
         if(!tag)
             return res.status(404).send({error: "tag does not exist"});
 
-        let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
+        let yesterday = new Date();
+        yesterday.setHours(0,0,0,0);
+
+        let tomorrow = new Date();
+
+        let co2 = await CO2.findOne({roomId: room._id, createdAt: {$gt: yesterday, $lt: tomorrow}}).sort({createdAt: -1});
 
         if (co2 == null) {
             co2 = {value: 0}
@@ -111,7 +116,7 @@ router.post('/rfid/login', async (req, res) => {
 
         const amountOfPeople = await People.countDocuments({
             roomId: room._id,
-            createdAt: {$gt: new Date(today.getFullYear(), today.getMonth(), today.getDate())}
+            createdAt: {$gt: new Date(today.getFullYear(), today.getMonth(), today.getDate()), $lt: tomorrow}
         }, async (err, count) =>  count);
 
         let currentSafetyLevel = determineSafetyLevel(co2.value, amountOfPeople, room.peopleAmount);
@@ -153,7 +158,12 @@ router.post('/rfid/login', async (req, res) => {
             const people = await People.find({roomName: room.roomName}).populate('tagId');
 
             for (let i = 0; i < people.length; i++) {
-                sendTooManyPeopleMessage(room.roomName, people[i].tagId.firebaseToken);
+                try {
+                    sendTooManyPeopleMessage(room.roomName, people[i].tagId.firebaseToken);
+                } catch(e) {
+                    console.log(e);
+                }
+
             }
         }
 
@@ -164,7 +174,11 @@ router.post('/rfid/login', async (req, res) => {
             const people = await People.find({roomName: room.roomName}).populate('tagId');
 
             for (let i = 0; i < people.length; i++) {
-                sendSafetyLevelMessage(room.roomName, newSafetyLevel, currentSafetyLevel, people[i].tagId.firebaseToken)
+                try {
+                    sendSafetyLevelMessage(room.roomName, newSafetyLevel, currentSafetyLevel, people[i].tagId.firebaseToken)
+                } catch (e) {
+                    console.log(e);
+                }
             }
         }
 
@@ -189,8 +203,13 @@ router.post('/rfid/logout', async (req, res) => {
         if(!existingLogin)
             return res.status(200).send({message: "Success"});
 
+        let yesterday = new Date();
+        yesterday.setHours(0,0,0,0);
+
+        let tomorrow = new Date();
+
         const room = await Room.findOne({roomId: existingLogin.roomId.roomId});
-        let co2 = await CO2.findOne({roomId: room._id}).sort({createdAt: -1});
+        let co2 = await CO2.findOne({roomId: room._id , createdAt: {$gt: yesterday, $lt: tomorrow}}).sort({createdAt: -1});
 
         if(co2 === null) {
             co2 = {value: 0}
@@ -218,7 +237,12 @@ router.post('/rfid/logout', async (req, res) => {
                 const people = await People.find({roomName: room.roomName}).populate('tagId');
 
                 for (let i = 0; i < people.length; i++) {
-                    sendSafetyLevelMessage(room.roomName, newSafetyLevel, currentSafetyLevel, people[i].tagId.firebaseToken)
+                    try{
+                        sendSafetyLevelMessage(room.roomName, newSafetyLevel, currentSafetyLevel, people[i].tagId.firebaseToken)
+                    } catch (e) {
+                        console.log(e);
+                    }
+
                 }
             }
         }

@@ -22,10 +22,14 @@ router.post('/co2add', async (req, res) => {
         const room = await Room.findOne({roomId});
 
         if(!room)
-            return res.status(404).send({error: "room doesn\'t exist"})
+            return res.status(404).send({error: "room doesn\'t exist"});
 
+        let yesterday = new Date();
+        yesterday.setHours(0,0,0,0);
 
-        const currentCo2 = await Co2.findOne({roomId: room._id}).sort({createdAt: -1});
+        let tomorrow = new Date();
+
+        const currentCo2 = await Co2.findOne({roomId: room._id, createdAt: {$gt: yesterday, $lt: tomorrow}}).sort({createdAt: -1});
 
         // bereken het huidige veiligheidsniveau om dit te kunnen vergelijken met het nieuwe veiligheidsniveau voor het sturen van een notificatie
         const today = new Date();
@@ -48,6 +52,8 @@ router.post('/co2add', async (req, res) => {
         await newValue.save();
 
         let FIVE_MIN = 5*60*1000;
+        // let FIVE_MIN = 10;
+        // sendCo2LevelMessage(room.roomName, "exoZLlRKT3WNx1quM-WNxc:APA91bG8b9ui5S5fHfl227IwiIRuDlMp3_ZU2r5_A3UmiShj1eE2dYa-7Cm9Q0NdvHv5EUGIWZzOYUS4GAPXl38eDeP_xudpQsP2GlBZH59Ly9qP5xGfah3OMCdZGV042OUdhLvM-AVA");
 
         if(sentNotifications.tooHigh[room.roomId] === undefined || new Date() - sentNotifications.tooHigh[room.roomId].time > FIVE_MIN){
             if(value > 1000 && currentCo2.value <= 1000) {
@@ -58,7 +64,12 @@ router.post('/co2add', async (req, res) => {
                 const people = await People.find({roomName: room.roomName}).populate('tagId');
 
                 for (let i = 0; i < people.length; i++) {
-                    sendCo2LevelMessage(room.roomName, people[i].tagId.firebaseToken);
+                    try {
+                        sendCo2LevelMessage(room.roomName, people[i].tagId.firebaseToken);
+                    } catch(e) {
+                        console.log(e)
+                    }
+
                 }
             }
         }
@@ -75,7 +86,11 @@ router.post('/co2add', async (req, res) => {
                 const people = await People.find({roomName: room.roomName}).populate('tagId');
 
                 for (let i = 0; i < people.length; i++) {
-                    sendSafetyLevelMessage(room.roomName, newSafetyLevel, currentSafetyLevel, people[i].tagId.firebaseToken)
+                    try{
+                        sendSafetyLevelMessage(room.roomName, newSafetyLevel, currentSafetyLevel, people[i].tagId.firebaseToken)
+                    } catch(e) {
+                        console.log(e)
+                    }
                 }
             }
         }
