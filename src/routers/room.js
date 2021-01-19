@@ -122,7 +122,6 @@ router.get('/rooms/:roomId/history', async (req, res) => {
         lastWeek.setHours(0,0,0,0)
 
         let yesterday = new Date();
-        // yesterday.setDate(yesterday.getDate() - 1);
         yesterday.setHours(0,0,0,0)
 
         let tomorrow = new Date();
@@ -213,7 +212,7 @@ router.get('/rooms/:roomId/history', async (req, res) => {
         const peopleDay = await LoggedInTagsLog.aggregate([
             {
                 $match: {
-                    createdAt: {$gt: yesterday, $lt: tomorrow}, //TODO: testen of dit werkt
+                    createdAt: {$gt: yesterday, $lt: tomorrow},
                     roomId: room._id
                 }
             },
