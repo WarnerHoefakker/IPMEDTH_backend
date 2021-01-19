@@ -31,7 +31,7 @@ const sendTooManyPeopleMessage = (roomName, token) => {
         sendMessage(
             {
                 title: 'Veiligheidswaarschuwing',
-                body: 'Er zijn te veel mensen aanwezig in lokaal ' + roomName
+                body: 'De ruimte (' + roomName + ') is bijna vol, hou in de gaten dat er niet te veel mensen bij komen!'
             },
             token
         )
@@ -51,7 +51,7 @@ const sendSafetyLevelMessage = (roomName, safetyLevel, oldSafetyLevel, token) =>
     try {
         sendMessage(
             {
-                title: 'Veiligheidswaarschuwing',
+                title: 'Statusverandering',
                 body: 'Het veiligheidsniveau van lokaal ' + roomName + ' is veranderd van ' + statusObj[oldSafetyLevel] + ' naar ' + statusObj[safetyLevel] + '.'
             },
             token
@@ -66,7 +66,7 @@ const sendCo2LevelMessage = (roomName, token) => {
         sendMessage(
             {
                 title: 'Veiligheidswaarschuwing',
-                body: 'De luchtkwaliteit van lokaal ' + roomName + ' is te hoog. Ventileer de ruimte. Door ramen of deuren te openen'
+                body: 'De luchtkwaliteit van lokaal ' + roomName + ' is te hoog. Ventileer de ruimte door ramen of deuren te openen.'
             },
             token
         )

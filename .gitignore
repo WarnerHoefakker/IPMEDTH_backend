@@ -3,3 +3,4 @@ config/
 .idea/
 .env
 .jest/setEnvVars.js
+src/dummyDataSeeder.js

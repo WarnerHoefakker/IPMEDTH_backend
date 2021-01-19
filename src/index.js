@@ -20,4 +20,7 @@ const server = app.listen(process.env.PORT || 3001, () => {
     console.log('server is up on port ', process.env.PORT || 3001)
 });
 
+// const seeder = require('./dummyDataSeeder')
+// seeder();
+
 module.exports = server;
