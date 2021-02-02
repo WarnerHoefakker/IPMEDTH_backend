@@ -14,9 +14,12 @@ const {sendSafetyLevelMessage} = require("../sendNotification");
 const logPeopleAmount = async (room) => {
     const today = new Date();
 
+    let yesterday = new Date();
+    yesterday.setHours(0,0,0,0);
+
     const count = await People.countDocuments({
         roomId: room._id,
-        createdAt: {$gt: new Date(today.getFullYear(), today.getMonth(), today.getDate())}
+        createdAt: {$gt: yesterday, $lt: today}
     }, async (err, count) => {
         const newTagLog = new LoggedInTagsLog({peopleAmount: count, roomId: room._id, levelId: room.levelId});
         await newTagLog.save();
